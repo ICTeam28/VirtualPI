@@ -57,18 +57,27 @@ public:
    */
   Emulator& operator = (const Emulator&) =delete;
 
+  /**
+   * Dumps the THUMB state
+   */
+  void DumpTHUMB(std::ostream& os);
+
 private:
 
-  /**
-   * Configuration
-   */
+  /// Configuration
   const Args &args;
 
-  /**
-   * Memory module
-   */
+  /// Memory module
   Memory mem;
 
+  /// ARM state
+  ARMState armState;
+
+  /// THUMB state
+  THUMBState thumbState;
+
+  /// Thumb
+  friend void ThumbExecute(Emulator *emu);
 };
 
 #endif /*__EMULATOR_H__*/

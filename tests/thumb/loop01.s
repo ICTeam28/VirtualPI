@@ -8,8 +8,8 @@ entry:
   bx  r6
 thumb:
   .code 16
+  mov     r1, #255
 1:
-  mov     r1, #2
-  mov     r2, #1
-  add     r1, r2
+  sub     r1, #1
+  bne     1b
   .long   0

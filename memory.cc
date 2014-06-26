@@ -5,7 +5,7 @@
 
 
 // -----------------------------------------------------------------------------
-Memory::Memory(Emulator &emu, uint32_t sdramSize, uint32_t vramSize)
+Memory::Memory(Emulator &emu, uint32_t ramSize, uint32_t vramSize)
   : emu(emu)
   , ramSize(ramSize)
   , ram(nullptr)
@@ -21,6 +21,7 @@ Memory::Memory(Emulator &emu, uint32_t sdramSize, uint32_t vramSize)
 // -----------------------------------------------------------------------------
 Memory::~Memory()
 {
+  delete[] ram;
 }
 
 

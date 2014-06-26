@@ -7,7 +7,7 @@ project(piemu)
 
 # Dependencies
 find_package(SDL REQUIRED)
-include_directories(${SDL_INCLUDE_DIRS})
+include_directories(${SDL_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR})
 
 
 # Enable coverage in debug mode

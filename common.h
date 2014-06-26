@@ -18,6 +18,8 @@
 #include <iostream>
 #include <exception>
 #include <stdexcept>
+#include <iomanip>
+#include <streambuf>
 
 
 // Linux includes
@@ -27,7 +29,8 @@
 // Emulator includes
 #include "exception.h"
 #include "memory.h"
+#include "arch/arm.h"
+#include "arch/thumb.h"
 #include "emulator.h"
-
 
 #endif /*__COMMON_H__*/

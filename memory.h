@@ -35,36 +35,32 @@ public:
    */
   void LoadImage(const std::string& image, size_t start);
 
+  /**
+   * Returns a word from memory
+   */
+  uint16_t GetInstrWord(uint32_t addr)
+  {
+    return ram[addr] | (ram[addr + 1] << 8);
+  }
+
 private:
 
-  /**
-   * Reference to the emulator
-   */
+  /// Reference to the emulator
   Emulator &emu;
 
-  /**
-   * Size of SDRAM
-   */
+  /// Size of SDRAM
   uint32_t ramSize;
 
-  /**
-   * RAM
-   */
+  /// RAM
   uint8_t *ram;
 
-  /**
-   * Size of VRAM
-   */
+  /// Size of VRAM
   uint32_t vramSize;
 
-  /**
-   * VRAM (pointer inside sdram)
-   */
+  /// VRAM (pointer inside sdram)
   uint8_t *vram;
 
-  /**
-   * ROM (pointer inside sdram)
-   */
+  /// ROM (pointer inside sdram)
   uint8_t *rom;
 };
 

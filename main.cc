@@ -7,6 +7,7 @@
 // -----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+  int a, b;
   try
   {
     return EXIT_SUCCESS;
