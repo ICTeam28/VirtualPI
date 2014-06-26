@@ -6,24 +6,12 @@
 
 
 /**
- * Thumb executor function
- */
-typedef void (*ThumbExec) (Emulator *, uint16_t);
-
-
-/**
- * Thumb dispatch table
- */
-extern ThumbExec ThumbMap[0x20];
-
-
-/**
  * THUMB state
  */
 struct THUMBState
 {
   /// r0 - r7
-  uint32_t r[8];
+  int32_t r[8];
 
   /// Stack Pointer
   uint32_t sp;
@@ -45,6 +33,9 @@ struct THUMBState
 
   /// Overflow flag
   uint32_t v;
+
+  /// ITT state
+  uint8_t  itt;
 };
 
 

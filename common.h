@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cassert>
 
 
 // C++ includes
@@ -26,11 +27,16 @@
 #include <ftw.h>
 
 
+// Compiler specific macros
+#define FORCEINLINE __attribute__((always_inline))
+
+
 // Emulator includes
 #include "exception.h"
 #include "memory.h"
 #include "arch/arm.h"
 #include "arch/thumb.h"
 #include "emulator.h"
+
 
 #endif /*__COMMON_H__*/

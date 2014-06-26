@@ -3,11 +3,259 @@
 // (C) 2014 Nandor Licker. All rights reserved.
 #include "common.h"
 
-// -----------------------------------------------------------------------------
-ThumbExec ThumbMap[0x20] =
-{
 
-};
+// -----------------------------------------------------------------------------
+static void Branch(THUMBState *, uint16_t) FORCEINLINE;
+static void LSL(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
+static void LSR(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
+static void ASR(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
+static void ADD(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
+static void SUB(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
+static void MOV(THUMBState *, int32_t &, int32_t) FORCEINLINE;
+static void CMP(THUMBState *, int32_t, int32_t) FORCEINLINE;
+
+
+// -----------------------------------------------------------------------------
+static inline void Branch(THUMBState *t, uint16_t op)
+{
+  int32_t off;
+
+  assert((op & 0xF000) == 0xD000);
+  assert(((op & 0x0F00) != 0x0E00) && ((op & 0x0F00) != 0x0E00));
+
+  // Sign extend offset & adjust for pipelining
+  if ((off = (op & 0xFF)) & 0x80)
+  {
+    off |= ~0xFF;
+  }
+  off = (off << 1) + 2;
+
+  // Check condition
+  switch ((op >> 8) & 0xF)
+  {
+    case 0x0: t->pc += (t->z)                  ? off : 0; return;
+    case 0x1: t->pc += (!t->z)                 ? off : 0; return;
+    case 0x2: t->pc += (t->c)                  ? off : 0; return;
+    case 0x3: t->pc += (!t->c)                 ? off : 0; return;
+    case 0x4: t->pc += (t->n)                  ? off : 0; return;
+    case 0x5: t->pc += (!t->n)                 ? off : 0; return;
+    case 0x6: t->pc += (t->v)                  ? off : 0; return;
+    case 0x7: t->pc += (!t->v)                 ? off : 0; return;
+    case 0x8: t->pc += (t->c && !t->z)         ? off : 0; return;
+    case 0x9: t->pc += (!t->c || t->z)         ? off : 0; return;
+    case 0xA: t->pc += (t->n == t->v)          ? off : 0; return;
+    case 0xB: t->pc += (t->n != t->v)          ? off : 0; return;
+    case 0xC: t->pc += (!t->z && t->n == t->v) ? off : 0; return;
+    case 0xD: t->pc += (t->z || t->n != t->v)  ? off : 0; return;
+    default:
+    {
+      __builtin_unreachable();
+    }
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void LSL(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[A], %%eax      \n\t"
+      "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "shll   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "jmp    2f               \n\t"
+      "1:                      \n\t"
+      "shll   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "2:                      \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "+m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "c"  (b)
+    , [I] "q"  (t->itt)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void LSR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[A], %%eax      \n\t"
+      "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "shrl   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "jmp    2f               \n\t"
+      "1:                      \n\t"
+      "shrl   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "2:                      \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "+m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "c"  (b)
+    , [I] "q"  (t->itt)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void ASR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[A], %%eax      \n\t"
+      "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "sarl   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "jmp    2f               \n\t"
+      "1:                      \n\t"
+      "sarl   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "2:                      \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "+m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "c"  (b)
+    , [I] "q"  (t->itt)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void ADD(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "movl   %[B], %%eax      \n\t"
+      "addl   %[A], %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+      "jmp    2f               \n\t"
+      "1:                      \n\t"
+      "movl   %[B], %%eax      \n\t"
+      "addl   %[A], %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "2:                      \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "g"  (b)
+    , [I] "q"  (t->itt)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "movl   %[B], %%eax      \n\t"
+      "subl   %[A], %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+      "jmp    2f               \n\t"
+      "1:                      \n\t"
+      "movl   %[B], %%eax      \n\t"
+      "subl   %[A], %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "2:                      \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "g"  (b)
+    , [I] "q"  (t->itt)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void MOV(THUMBState *t, int32_t &r, int32_t a)
+{
+  asm volatile
+    ( "movzbl %%al, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "test   %%eax, %%eax     \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "1:                      \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [R] "=m" (r)
+    : [O] "a"  (a)
+    , [I] "q"  (t->itt)
+    : "memory", "cc"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void CMP(THUMBState *t, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "test   %[I], %[I]       \n\t"
+      "jnz    1f               \n\t"
+      "movl   %[B], %%eax      \n\t"
+      "cmpl   %[A], %%eax      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+      "1:"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
+    : [A] "g"  (a)
+    , [B] "g"  (b)
+    , [I] "q"  (t->itt)
+    : "memory", "cc", "eax"
+    );
+}
+
+
 // -----------------------------------------------------------------------------
 void ThumbExecute(Emulator *emu)
 {
@@ -44,463 +292,466 @@ void ThumbExecute(Emulator *emu)
     goto *jmp[op >> 9];
   }
 
-  // LSL Rd, Rs, #Offset5
-  op_00: op_01: op_02: op_03:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
+  op_00: op_01: op_02: op_03: // LSL Rd, Rs, #Offset5
+    LSL(t, t->r[(op >> 0) & 7], t->r[(op >> 3) & 7], (op >> 6) & 0x1F);
     goto end;
-  }
 
-  //  LSR Rd, Rs, #Offset5
-  op_04: op_05: op_06: op_07:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
+  op_04: op_05: op_06: op_07: // LSR Rd, Rs, #Offset5
+    LSR(t, t->r[(op >> 0) & 7], t->r[(op >> 3) & 7], (op >> 6) & 0x1F);
     goto end;
-  }
 
-  // ASR Rd, Rs, #Offset5
-  op_08: op_09: op_0A: op_0B:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
+  op_08: op_09: op_0A: op_0B: // ASR Rd, Rs, #Offset5
+    ASR(t, t->r[(op >> 0) & 7], t->r[(op >> 3) & 7], (op >> 6) & 0x1F);
     goto end;
-  }
 
-  // ADD Rr, Rb, Ra
-  op_0C:
-  {
-    asm volatile
-      ( "movl   %[B], %%eax      \n\t"
-        "addl   %[A], %%eax      \n\t"
-        "movl   %%eax, %[R]      \n\t"
-        "sets   %[N]             \n\t"
-        "setz   %[Z]             \n\t"
-        "setc   %[C]             \n\t"
-        "seto   %[V]             \n\t"
-      : [N] "=m" (t->n)
-      , [Z] "=m" (t->z)
-      , [C] "=m" (t->c)
-      , [V] "=m" (t->v)
-      , [R] "=m" (t->r[(op >> 0) & 7])
-      : [A] "g"  (t->r[(op >> 6) & 7])
-      , [B] "g"  (t->r[(op >> 3) & 7])
-      : "memory", "cc", "eax"
-      );
+  op_0C: // ADD Rr, Rb, Ra
+    ADD(t, t->r[(op >> 0) & 7], t->r[(op >> 6) & 7], t->r[(op >> 3) & 7]);
     goto end;
-  }
 
-  // SUB Rr, Rb, Ra
-  op_0D:
-  {
-    asm volatile
-      ( "movl   %[B], %%eax      \n\t"
-        "subl   %[A], %%eax      \n\t"
-        "movl   %%eax, %[R]      \n\t"
-        "sets   %[N]             \n\t"
-        "setz   %[Z]             \n\t"
-        "setc   %[C]             \n\t"
-        "seto   %[V]             \n\t"
-      : [N] "=m" (t->n)
-      , [Z] "=m" (t->z)
-      , [C] "=m" (t->c)
-      , [V] "=m" (t->v)
-      , [R] "=m" (t->r[(op >> 0) & 7])
-      : [A] "g"  (t->r[(op >> 6) & 7])
-      , [B] "g"  (t->r[(op >> 3) & 7])
-      : "memory", "cc", "eax"
-      );
+  op_0D: // SUB Rr, Rb, Ra
+    SUB(t, t->r[(op >> 0) & 7], t->r[(op >> 6) & 7], t->r[(op >> 3) & 7]);
     goto end;
-  }
 
-  // ADD Rr, Rb, #Offset3
-  op_0E:
-  {
-    asm volatile
-      ( "movl   %[B], %%eax      \n\t"
-        "addl   %[A], %%eax      \n\t"
-        "movl   %%eax, %[R]      \n\t"
-        "sets   %[N]             \n\t"
-        "setz   %[Z]             \n\t"
-        "setc   %[C]             \n\t"
-        "seto   %[V]             \n\t"
-      : [N] "=m" (t->n)
-      , [Z] "=m" (t->z)
-      , [C] "=m" (t->c)
-      , [V] "=m" (t->v)
-      , [R] "=m" (t->r[(op >> 0) & 7])
-      : [A] "g"  ((op >> 6) & 7)
-      , [B] "g"  (t->r[(op >> 3) & 7])
-      : "memory", "cc", "eax"
-      );
+  op_0E: // ADD Rr, Rb, #Offset3
+    ADD(t, t->r[(op >> 0) & 7], (op >> 6) & 7, t->r[(op >> 3) & 7]);
     goto end;
-  }
 
-  // SUB Rr, Rb, #Offset3
-  op_0F:
-  {
-    asm volatile
-      ( "movl   %[B], %%eax      \n\t"
-        "subl   %[A], %%eax      \n\t"
-        "movl   %%eax, %[R]      \n\t"
-        "sets   %[N]             \n\t"
-        "setz   %[Z]             \n\t"
-        "setc   %[C]             \n\t"
-        "seto   %[V]             \n\t"
-      : [N] "=m" (t->n)
-      , [Z] "=m" (t->z)
-      , [C] "=m" (t->c)
-      , [V] "=m" (t->v)
-      , [R] "=m" (t->r[(op >> 0) & 7])
-      : [A] "g"  ((op >> 6) & 7)
-      , [B] "g"  (t->r[(op >> 3) & 7])
-      : "memory", "cc", "eax"
-      );
+  op_0F: // SUB Rr, Rb, #Offset3
+    SUB(t, t->r[(op >> 0) & 7], (op >> 6) & 7, t->r[(op >> 3) & 7]);
     goto end;
-  }
 
-  // MOV Rr, #Offset8
-  op_10: op_11: op_12: op_13:
-  {
-    asm volatile
-      ( "movzbl %%al, %%eax      \n\t"
-        "movl   %%eax, %[R]      \n\t"
-        "test   %%eax, %%eax     \n\t"
-        "sets   %[N]             \n\t"
-        "setz   %[Z]             \n\t"
-      : [N] "=m" (t->n)
-      , [Z] "=m" (t->z)
-      , [R] "=m" (t->r[(op >> 8) & 7])
-      : [O] "a" (op & 0xFF)
-      : "memory", "cc"
-      );
+  op_10: op_11: op_12: op_13: // MOV Rr, #Offset8
+    MOV(t, t->r[(op >> 8) & 7], op & 0xFF);
     goto end;
-  }
 
-  // CMP Rd, #Offset8
-  op_14:
-  op_15:
-  op_16:
-  op_17:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
+  op_14: op_15: op_16: op_17: // CMP Rd, #Offset8
+    CMP(t, t->r[(op >> 8) & 7], op & 0xFF);
     goto end;
-  }
-  op_18:
-  op_19:
-  op_1A:
-  op_1B:
-  {
-    // ADD Rd, #Offset8
-    fprintf(stderr, "%02x\n", op >> 9);
+
+  op_18: op_19: op_1A: op_1B: // ADD Rd, #Offset8
+    ADD(t, t->r[(op >> 0) & 7], (op >> 6) & 7, t->r[(op >> 3) & 7]);
     goto end;
-  }
-  op_1C:
-  op_1D:
-  op_1E:
-  op_1F:
-  {
-    // SUB Rd, #Offset8
-    asm volatile
-      ( "subl   %[A], %[B]       \n\t"
-        "sets   %[N]             \n\t"
-        "setz   %[Z]             \n\t"
-        "setc   %[C]             \n\t"
-        "seto   %[V]             \n\t"
-      : [N] "=m" (t->n)
-      , [Z] "=m" (t->z)
-      , [C] "=m" (t->c)
-      , [V] "=m" (t->v)
-      , [B] "+m" (t->r[(op >> 8) & 7])
-      : [A] "r"  (op & 0xFF)
-      : "memory", "cc"
-      );
+
+  op_1C: op_1D: op_1E: op_1F: // SUB Rd, #Offset8
+    SUB(t, t->r[(op >> 8) & 7], op & 0xFF, t->r[(op >> 8) & 7]);
     goto end;
-  }
+
   op_20:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
+  {
+    switch ((op >> 6) & 7)
+    {
+      // AND Rd, Rs
+      case 0:
+      {
+        goto end;
+      }
+      // EOR Rd, Rs
+      case 1:
+      {
+        goto end;
+      }
+      // LSL Rd, Rs
+      case 2:
+      {
+        goto end;
+      }
+      // LSR Rd, Rs
+      case 3:
+      {
+        goto end;
+      }
+      // ASR Rd, Rs
+      case 4:
+      {
+        goto end;
+      }
+      // ADC Rd, Rs
+      case 5:
+      {
+        goto end;
+      }
+      // SBC Rd, Rs
+      case 6:
+      {
+        goto end;
+      }
+      // ROR Rd, Rs
+      case 7:
+      {
+        goto end;
+      }
+      default:
+      {
+        /* LCOV_EXCL_LINE */
+        __builtin_unreachable();
+      }
+    }
+  }
   op_21:
+  {
+    switch ((op >> 6) & 7)
+    {
+      // TST Rd, Rs
+      case 0:
+      {
+        goto end;
+      }
+      // NEG Rd, Rs
+      case 1:
+      {
+        goto end;
+      }
+      // CMP Rd, Rs
+      case 2:
+      {
+        goto end;
+      }
+      // CMN Rd, Rs
+      case 3:
+      {
+        goto end;
+      }
+      // ORR Rd, Rs
+      case 4:
+      {
+        goto end;
+      }
+      // MUL Rd, Rs
+      case 5:
+      {
+        goto end;
+      }
+      // BIC Rd, Rs
+      case 6:
+      {
+        goto end;
+      }
+      // MVN Rd, Rs
+      case 7:
+      {
+        goto end;
+      }
+      default:
+      {
+        /* LCOV_EXCL_LINE */
+        __builtin_unreachable();
+      }
+    }
+  }
+
+  op_22: op_23:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
-  op_22:
+  }
+
+  // LDR Rd, [PC, #Imm]
+  op_24: op_25: op_26: op_27:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
-  op_23:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_24:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_25:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_26:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_27:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
+  }
+
+  // STR Rd, [Rb, Ro]
   op_28:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // STRH Rd, [Rb, Ro]
   op_29:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // STRB Rd, [Rb, Ro]
   op_2A:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // LDRH Rd, [Rb, Ro]
   op_2B:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // LDR Rd, [Rb, Ro] L
   op_2C:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // LDSB Rd, [Rb, Ro]
   op_2D:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // LDRB Rd, [Rb, Ro]
   op_2E:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
+  }
+
+  // LDSH Rd, [Rb, Ro]
   op_2F:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_30:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_31:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_32:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_33:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_34:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_35:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_36:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_37:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_38:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_39:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_3A:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_3B:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_3C:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_3D:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_3E:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_3F:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_40:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_41:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_42:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_43:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_44:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_45:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_46:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_47:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_48:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_49:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_4A:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_4B:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_4C:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_4D:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_4E:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_4F:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_50:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_51:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_52:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_53:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_54:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_55:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_56:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_57:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_58:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_59:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_5A:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_5B:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_5C:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_5D:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_5E:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_5F:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_60:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_61:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_62:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_63:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_64:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_65:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_66:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_67:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_68:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_69:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_6A:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_6B:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_6C:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_6D:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_6E:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // STR Rd, [Rb, #Imm]
+  op_30: op_31: op_32: op_33:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // LDR Rd, [Rb, #Imm]
+  op_34: op_35: op_36: op_37:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // STRB Rd, [Rb, #Imm]
+  op_38: op_39: op_3A: op_3B:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // LDRB Rd, [Rb, #Imm]
+  op_3C: op_3D: op_3E: op_3F:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // STRH Rd, [Rb, #Imm]
+  op_40: op_41: op_42: op_43:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // LDRH Rd, [Rb, #Imm]
+  op_44: op_45: op_46: op_47:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // STR Rd, [SP, #Imm]
+  op_48: op_49: op_4A: op_4B:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // LDR Rd, [SP, #Imm]
+  op_4C: op_4D: op_4E: op_4F:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  op_50: op_51: op_52: op_53:
+  {
+    // ADD Rd, PC, #Imm8
+    ADD(t, t->r[(op >> 8) & 3], t->pc, (op & 0xFF) << 2);
+    goto end;
+  }
+  op_54: op_55: op_56: op_57:
+  {
+    // ADD Rd, SP, #Imm8
+    ADD(t, t->r[(op >> 8) & 3], t->sp, (op & 0xFF) << 2);
+    goto end;
+  }
+
+  op_58: op_59: op_5A: op_5B: op_5C: op_5D: op_5E: op_5F:
+  {
+    // Miscellaneous
+    switch ((op >> 5) & 0x7F)
+    {
+      case 0x00 ... 0x03:
+      {
+        // ADD SP, SP, #Imm7
+        goto end;
+      }
+      case 0x04 ... 0x07:
+      {
+        // SUB SP, SP, #Imm7
+        goto end;
+      }
+      case 0x10 ... 0x11:
+      {
+        // SXTH
+        goto end;
+      }
+      case 0x12 ... 0x13:
+      {
+        // SXTB
+        goto end;
+      }
+      case 0x14 ... 0x15:
+      {
+        // UXTH
+        goto end;
+      }
+      case 0x16 ... 0x17:
+      {
+        // UXTB
+        goto end;
+      }
+      case 0x20 ... 0x2F:
+      {
+        // PUSH
+        goto end;
+      }
+      case 0x33:
+      {
+        // CPS
+        goto end;
+      }
+      case 0x50 ... 0x51:
+      {
+        // REV
+        goto end;
+      }
+      case 0x52 ... 0x53:
+      {
+        // REV16
+        goto end;
+      }
+      case 0x54 ... 0x55:
+      {
+        // REVSH
+        goto end;
+      }
+      case 0x60 ... 0x6F:
+      {
+        // POP
+        goto end;
+      }
+      case 0x70 ... 0x77:
+      {
+        // BKPT
+        goto end;
+      }
+      case 0x78 ... 0x7F:
+      {
+        if (op & 0xF)
+        {
+          // IT
+          goto end;
+        }
+
+        switch ((op >> 4) & 0xF)
+        {
+          case 0x0:
+          {
+            // NOP
+            goto end;
+          }
+          case 0x1:
+          {
+            // YIELD
+            goto end;
+          }
+          case 0x2:
+          {
+            // WFE
+            goto end;
+          }
+          case 0x3:
+          {
+            // WFI
+            goto end;
+          }
+          case 0x4:
+          {
+            // SEV
+            goto end;
+          }
+        }
+      }
+      default:
+      {
+        // TODO
+        __builtin_trap();
+      }
+    }
+  }
+
+  // STMIA Rb!, { Rlist }
+  op_60: op_61: op_62: op_63:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  // LDMIA Rb!, { Rlist }
+  op_64: op_65: op_66: op_67:
+  {
+    fprintf(stderr, "%02x\n", op >> 9);
+    goto end;
+  }
+
+  op_68: op_69: op_6A: op_6B: op_6C: op_6D: op_6E:
+  {
+    // Bcc label
+    Branch(t, op);
+    goto end;
+  }
+
   op_6F:
+  {
+    if ((op >> 8) & 0x1)
+    {
+      // SWI - quit for now
+      return;
+      goto end;
+    }
+    else
+    {
+      // UND
+      goto end;
+    }
+  }
+
+  // B label
+  op_70: op_71: op_72: op_73:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
-  op_70:
+  }
+
+  op_74: op_75: op_76: op_77:
+  {
+    // TODO
+    __builtin_trap();
+  }
+
+  // BLO
+  op_78: op_79: op_7A: op_7B:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
-  op_71:
+  }
+
+  // BLH
+  op_7C: op_7D: op_7E: op_7F:
+  {
     fprintf(stderr, "%02x\n", op >> 9);
     goto end;
-  op_72:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_73:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_74:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_75:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_76:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_77:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_78:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_79:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_7A:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_7B:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_7C:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_7D:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_7E:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  op_7F:
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
+  }
 }

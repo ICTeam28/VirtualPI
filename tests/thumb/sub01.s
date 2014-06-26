@@ -12,4 +12,4 @@ thumb:
   mov     r1, #255
   mov     r2, #255
   sub     r1, r2
-  .long   0
+  swi     0x0
