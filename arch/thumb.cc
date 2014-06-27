@@ -59,6 +59,13 @@ static void LDMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
+// Exceptions
+// -------------------------------------------------------------------------------------------------
+static inline void SWI(ARMState*) FORCEINLINE;
+static inline void UND(ARMState*) FORCEINLINE;
+
+
+// -------------------------------------------------------------------------------------------------
 static inline void BCC(ARMState *t, uint16_t op)
 {
   int32_t off;
@@ -490,6 +497,20 @@ static inline void LDMIA(ARMState*, int32_t&, uint8_t)
 
 
 // -------------------------------------------------------------------------------------------------
+static void SWI(ARMState* t)
+{
+  t->exc = ARM_EXC_SWI;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static void UND(ARMState* t)
+{
+  t->exc = ARM_EXC_UND;
+}
+
+
+// -------------------------------------------------------------------------------------------------
 void ThumbExecute(ARMState *t)
 {
   register uint32_t flags;
@@ -549,6 +570,27 @@ void ThumbExecute(ARMState *t)
       }
     }
 
+
+    // Check for exceptions. Interrupts are usually handled in THUMB
+    // state, so we must exit the THUMB interpreter loop and return
+    // to the ARM one to do this.
+    switch (t->exc)
+    {
+      case ARM_EXC_NONE:
+      {
+        break;
+      }
+      case ARM_EXC_UND:
+      {
+        return;
+      }
+      case ARM_EXC_SWI:
+      {
+        return;
+      }
+    }
+
+
     // Decode the instructions. The most significant 7 bits should
     // be enough to distinguish most instrucitions, but additional
     // switch statements are required for some categories such as
@@ -605,7 +647,7 @@ void ThumbExecute(ARMState *t)
           case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
           case 0xC: // Bx
           case 0xD: // Bx
-          default: goto und;
+          default: UND(t); continue;
         }
       case 0x20 ... 0x21:
         switch ((op >> 6) & 0xF)
@@ -661,38 +703,10 @@ void ThumbExecute(ARMState *t)
               case 0x4: /*SEV*/   continue;
             }
           }
-          default: goto und;
+          default: UND(t); continue;
         }
       case 0x74 ... 0x77: /*THUMB2*/ __builtin_trap(); continue;
-      case 0x6F:
-      {
-        if ((op >> 8) & 0x1)
-        {
-          goto swi;
-        }
-        else
-        {
-          goto und;
-        }
-      }
+      case 0x6F: (*(((op >> 8) & 0x1) ? SWI : UND)) (t); continue;
     }
-  }
-
-  // Swap to ARM
-  bx:
-  {
-    return;
-  }
-
-  // Software interrupt
-  swi:
-  {
-    return;
-  }
-
-  // Undefined interrupt
-  und:
-  {
-    return;
   }
 }

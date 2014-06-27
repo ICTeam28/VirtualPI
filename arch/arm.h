@@ -11,7 +11,7 @@ class Memory;
 
 
 /**
- * ARM operation mode
+ * ARM operating modes
  */
 enum ARMMode
 {
@@ -22,6 +22,43 @@ enum ARMMode
   ARM_MODE_ABT = 0x17,
   ARM_MODE_UND = 0x1B,
   ARM_MODE_SYS = 0x1F
+};
+
+
+/**
+ * ARM exceptions
+ */
+enum ARMException
+{
+  /// No exception present
+  ARM_EXC_NONE,
+
+  /// Reset interrupt
+  ARM_EXC_RESET,
+
+  /// Undefined interrupt
+  ARM_EXC_UND,
+
+  /// Software interrupt
+  ARM_EXC_SWI,
+
+  /// Prefetch abort
+  ARM_EXC_PREFETCH_ABORT,
+
+  /// Data abort
+  ARM_EXC_DATA_ABORT,
+
+  /// Interrupt request
+  ARM_EXC_IRQ,
+
+  /// Fast interrupt request
+  ARM_EXC_FIQ,
+
+  /// Switch to ARM
+  ARM_EXC_TOARM,
+
+  /// Switch to THUMB
+  ARM_EXC_TOTHUMB
 };
 
 
@@ -74,9 +111,19 @@ struct ARMState
   /// ITT state
   uint8_t  itt;
 
+  /// Interrupt enable
+  uint8_t i;
+
+  /// FIQ enable
+  uint8_t f;
+
+  /// Exception pending
+  ARMException exc;
+
   /// Memory module
   Memory *mem;
 };
+
 
 /**
  * Starts executing ARM instructions. This function exists when

@@ -3,6 +3,13 @@
 // (C) 2014 Nandor Licker. All rights reserved.
 #include "common.h"
 
+// -------------------------------------------------------------------------------------------------
+template<bool I, bool P, bool U, bool B, bool W, bool L>
+static inline void SingleDataTrans(ARMState *t, uint32_t op)
+{
+
+}
+
 
 // -------------------------------------------------------------------------------------------------
 void ARMExecute(ARMState *t)
@@ -17,11 +24,19 @@ void ARMExecute(ARMState *t)
     op = t->mem->GetInstrLong(t->pc - 4);
 
     // Decode the instruction
-    switch (((op >> 20) & 0xFF) | ((op >> 4) & 0xF))
+    switch (((op >> 16) & 0xFF0) | ((op >> 4) & 0xF))
     {
+      case 0x121:
+      {
+        if ((op & 0x0FFFFFF0) == 0x012FFF10)
+        {
+
+        }
+      }
+      case 0x590 ... 0x59F: SingleDataTrans<0, 1, 1, 0, 0, 1>(t, op); continue;
       default:
       {
-        std::cerr << op << std::endl;
+        std::cerr << std::hex << (((op >> 16) & 0xFF0) | ((op >> 4) & 0xF)) << std::endl;
         goto und;
       }
     }
