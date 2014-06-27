@@ -3,7 +3,6 @@
 // (C) 2014 Nandor Licker. All rights reserved.
 #include "common.h"
 
-
 // -----------------------------------------------------------------------------
 static int testCount = 0;
 static int testPass = 0;
@@ -85,24 +84,19 @@ int RunTest(const char *path, const struct stat *sb, int type)
   return 0;
 }
 
-
 // -----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   if (argc != 2)
   {
-    /* LCOV_EXCL_START */
     std::cerr << "Not enough arguments" << std::endl;
     return EXIT_FAILURE;
-    /* LCOV_EXCL_END */
   }
 
   if (ftw(argv[1], RunTest, 5) == -1)
   {
-    /* LCOV_EXCL_START */
     std::cerr << "Error: Traversal failed" << std::endl;
     return EXIT_FAILURE;
-    /* LCOV_EXCL_END */
   }
 
   std::cout << "Result: " << testPass << "/" << testCount << std::endl;

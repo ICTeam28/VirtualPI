@@ -10,29 +10,44 @@
  */
 struct THUMBState
 {
-  /// r0 - r7
-  int32_t r[8];
+  union
+  {
+    struct
+    {
+      uint32_t r0;
+      uint32_t r1;
+      uint32_t r2;
+      uint32_t r3;
+      uint32_t r4;
+      uint32_t r5;
+      uint32_t r6;
+      uint32_t r7;
+      uint32_t r8;
+      uint32_t r9;
+      uint32_t r10;
+      uint32_t r11;
+      uint32_t r12;
+      uint32_t sp;
+      uint32_t lr;
+      uint32_t pc;
+    };
 
-  /// Stack Pointer
-  uint32_t sp;
+    int32_t r[0x10];
+  };
 
-  /// Program Counter
-  uint32_t pc;
+  union
+  {
+    struct
+    {
+      uint8_t n;
+      uint8_t z;
+      uint8_t c;
+      uint8_t v;
+    };
 
-  /// Link Register
-  uint32_t lr;
-
-  /// Zero flag
-  uint32_t z;
-
-  /// Negative flag
-  uint32_t n;
-
-  /// Carry flag
-  uint32_t c;
-
-  /// Overflow flag
-  uint32_t v;
+    /// Combined flags
+    uint32_t flags;
+  };
 
   /// ITT state
   uint8_t  itt;

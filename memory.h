@@ -40,7 +40,15 @@ public:
    */
   uint16_t GetInstrWord(uint32_t addr)
   {
-    return ram[addr] | (ram[addr + 1] << 8);
+    return *((uint16_t*)(ram + addr));
+  }
+
+  /**
+   * Returns a long from memory
+   */
+  uint32_t GetLong(uint32_t addr)
+  {
+    return *((uint32_t*)(ram + addr));
   }
 
 private:

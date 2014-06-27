@@ -4,26 +4,55 @@
 #include "common.h"
 
 
-// -----------------------------------------------------------------------------
-static void Branch(THUMBState *, uint16_t) FORCEINLINE;
-static void LSL(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
-static void LSR(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
-static void ASR(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
-static void ADD(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
-static void SUB(THUMBState *, int32_t &, int32_t, int32_t) FORCEINLINE;
-static void MOV(THUMBState *, int32_t &, int32_t) FORCEINLINE;
-static void CMP(THUMBState *, int32_t, int32_t) FORCEINLINE;
+// -------------------------------------------------------------------------------------------------
+static void BCC(THUMBState*, uint16_t) FORCEINLINE;
+static void BAL(THUMBState*, uint16_t) FORCEINLINE;
+static void BLO(THUMBState*, uint16_t) FORCEINLINE;
+static void BLH(THUMBState*, uint16_t) FORCEINLINE;
+static void ADD(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void AND(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void EOR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void LSL(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void LSR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void ASR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void ADC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void SBC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void ROR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void TST(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void NEG(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void CMP(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void CMN(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void ORR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void MUL(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void BIC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void MVN(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void MOV(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void LSL(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void LSR(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void ASR(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void ADD(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void SUB(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void LDR(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void STR(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRB(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSB(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void STRB(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRH(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSH(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void STRH(Memory*, int32_t&, uint32_t) FORCEINLINE;
+static void STMIA(Memory*, int32_t&, uint8_t) FORCEINLINE;
+static void LDMIA(Memory*, int32_t&, uint8_t) FORCEINLINE;
 
 
-// -----------------------------------------------------------------------------
-static inline void Branch(THUMBState *t, uint16_t op)
+// -------------------------------------------------------------------------------------------------
+static inline void BCC(THUMBState *t, uint16_t op)
 {
   int32_t off;
 
   assert((op & 0xF000) == 0xD000);
   assert(((op & 0x0F00) != 0x0E00) && ((op & 0x0F00) != 0x0E00));
 
-  // Sign extend offset & adjust for pipelining
+  // Sign extnext offset & adjust for pipelining
   if ((off = (op & 0xFF)) & 0x80)
   {
     off |= ~0xFF;
@@ -47,711 +76,596 @@ static inline void Branch(THUMBState *t, uint16_t op)
     case 0xB: t->pc += (t->n != t->v)          ? off : 0; return;
     case 0xC: t->pc += (!t->z && t->n == t->v) ? off : 0; return;
     case 0xD: t->pc += (t->z || t->n != t->v)  ? off : 0; return;
-    default:
-    {
-      __builtin_unreachable();
-    }
+    default: /* LCOV_EXCL_START */ __builtin_unreachable();
   }
 }
 
-
-// -----------------------------------------------------------------------------
-static inline void LSL(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+// -------------------------------------------------------------------------------------------------
+static inline void BAL(THUMBState *t, uint16_t op)
 {
-  asm volatile
-    ( "movl   %[A], %%eax      \n\t"
-      "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "shll   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "sets   %[N]             \n\t"
-      "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
-      "jmp    2f               \n\t"
-      "1:                      \n\t"
-      "shll   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "2:                      \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [C] "+m" (t->c)
-    , [V] "=m" (t->v)
-    , [R] "=m" (r)
-    : [A] "g"  (a)
-    , [B] "c"  (b)
-    , [I] "q"  (t->itt)
-    : "memory", "cc", "eax"
-    );
+  int32_t off;
+
+  if ((off = (op & 0x7FF)) & 0x80)
+  {
+    off |= ~0x7FF;
+  }
+
+  t->pc += off + 2;
 }
 
 
-// -----------------------------------------------------------------------------
-static inline void LSR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+// -------------------------------------------------------------------------------------------------
+static inline void BLO(THUMBState*, uint16_t)
 {
-  asm volatile
-    ( "movl   %[A], %%eax      \n\t"
-      "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "shrl   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "sets   %[N]             \n\t"
-      "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
-      "jmp    2f               \n\t"
-      "1:                      \n\t"
-      "shrl   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "2:                      \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [C] "+m" (t->c)
-    , [V] "=m" (t->v)
-    , [R] "=m" (r)
-    : [A] "g"  (a)
-    , [B] "c"  (b)
-    , [I] "q"  (t->itt)
-    : "memory", "cc", "eax"
-    );
+
 }
 
 
-// -----------------------------------------------------------------------------
-static inline void ASR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+// -------------------------------------------------------------------------------------------------
+static inline void BLH(THUMBState*, uint16_t)
 {
-  asm volatile
-    ( "movl   %[A], %%eax      \n\t"
-      "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "sarl   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "sets   %[N]             \n\t"
-      "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
-      "jmp    2f               \n\t"
-      "1:                      \n\t"
-      "sarl   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "2:                      \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [C] "+m" (t->c)
-    , [V] "=m" (t->v)
-    , [R] "=m" (r)
-    : [A] "g"  (a)
-    , [B] "c"  (b)
-    , [I] "q"  (t->itt)
-    : "memory", "cc", "eax"
-    );
+
 }
 
 
-// -----------------------------------------------------------------------------
-static inline void ADD(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+// -------------------------------------------------------------------------------------------------
+static inline void ADD(THUMBState *t, int32_t &r, int32_t a)
 {
   asm volatile
-    ( "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "movl   %[B], %%eax      \n\t"
-      "addl   %[A], %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
+    ( "addl   %[A], %[R]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
       "seto   %[V]             \n\t"
-      "jmp    2f               \n\t"
-      "1:                      \n\t"
-      "movl   %[B], %%eax      \n\t"
-      "addl   %[A], %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "2:                      \n\t"
     : [N] "=m" (t->n)
     , [Z] "=m" (t->z)
     , [C] "=m" (t->c)
     , [V] "=m" (t->v)
-    , [R] "=m" (r)
+    , [R] "=r" (r)
     : [A] "g"  (a)
-    , [B] "g"  (b)
-    , [I] "q"  (t->itt)
-    : "memory", "cc", "eax"
-    );
-}
-
-
-// -----------------------------------------------------------------------------
-static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
-{
-  asm volatile
-    ( "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "movl   %[B], %%eax      \n\t"
-      "subl   %[A], %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "sets   %[N]             \n\t"
-      "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
-      "seto   %[V]             \n\t"
-      "jmp    2f               \n\t"
-      "1:                      \n\t"
-      "movl   %[B], %%eax      \n\t"
-      "subl   %[A], %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "2:                      \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [C] "=m" (t->c)
-    , [V] "=m" (t->v)
-    , [R] "=m" (r)
-    : [A] "g"  (a)
-    , [B] "g"  (b)
-    , [I] "q"  (t->itt)
-    : "memory", "cc", "eax"
-    );
-}
-
-
-// -----------------------------------------------------------------------------
-static inline void MOV(THUMBState *t, int32_t &r, int32_t a)
-{
-  asm volatile
-    ( "movzbl %%al, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
-      "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "test   %%eax, %%eax     \n\t"
-      "sets   %[N]             \n\t"
-      "setz   %[Z]             \n\t"
-      "1:                      \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [R] "=m" (r)
-    : [O] "a"  (a)
-    , [I] "q"  (t->itt)
     : "memory", "cc"
     );
 }
 
 
-// -----------------------------------------------------------------------------
-static inline void CMP(THUMBState *t, int32_t a, int32_t b)
+// -------------------------------------------------------------------------------------------------
+static inline void AND(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void EOR(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LSL(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LSR(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void ASR(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void ADC(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void SBC(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void ROR(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void TST(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void NEG(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void CMP(THUMBState *t, int32_t &d, int32_t s)
 {
   asm volatile
-    ( "test   %[I], %[I]       \n\t"
-      "jnz    1f               \n\t"
-      "movl   %[B], %%eax      \n\t"
-      "cmpl   %[A], %%eax      \n\t"
+    ( "movl   %[D], %%eax      \n\t"
+      "cmpl   %[S], %%eax      \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
       "seto   %[V]             \n\t"
-      "1:"
     : [N] "=m" (t->n)
     , [Z] "=m" (t->z)
     , [C] "=m" (t->c)
     , [V] "=m" (t->v)
-    : [A] "g"  (a)
-    , [B] "g"  (b)
-    , [I] "q"  (t->itt)
+    : [D] "g"  (d)
+    , [S] "g"  (s)
     : "memory", "cc", "eax"
     );
 }
 
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+static inline void CMN(THUMBState *t, int32_t &d, int32_t s)
+{
+  asm volatile
+    ( "movl   %[D], %%eax      \n\t"
+      "addl   %[S], %%eax      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
+    : [D] "g"  (d)
+    , [S] "g"  (s)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void ORR(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void MUL(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void BIC(THUMBState *t, int32_t &d, int32_t s)
+{
+  __builtin_trap();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void MVN(THUMBState *t, int32_t &d, int32_t s)
+{
+  asm volatile
+    ( "movl   %[S], %[D]       \n\t"
+      "notl   %[D]             \n\t"
+      "test   %[D], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [D] "=r" (d)
+    : [S] "r"  (s)
+    : "memory", "cc"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void MOV(THUMBState *t, int32_t &d, int32_t s)
+{
+  asm volatile
+    ( "movl   %[S], %[D]       \n\t"
+      "test   %[S], %[S]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [D] "=r" (d)
+    : [S] "r"  (s)
+    : "memory", "cc"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LSL(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[A], %%eax      \n\t"
+      "shll   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [R] "=g" (r)
+    : [A] "g"  (a)
+    , [B] "c"  (b)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LSR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[A], %%eax      \n\t"
+      "shrl   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [R] "=g" (r)
+    : [A] "g"  (a)
+    , [B] "c"  (b)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void ASR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[A], %%eax      \n\t"
+      "sarl   %%cl, %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [R] "=g" (r)
+    : [A] "g"  (a)
+    , [B] "c"  (b)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void ADD(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[B], %%eax      \n\t"
+      "addl   %[A], %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "g"  (b)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+{
+  asm volatile
+    ( "movl   %[B], %%eax      \n\t"
+      "subl   %[A], %%eax      \n\t"
+      "movl   %%eax, %[R]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
+    , [R] "=m" (r)
+    : [A] "g"  (a)
+    , [B] "g"  (b)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LDR(Memory *m, int32_t&, uint32_t addr)
+{
+  std::cerr << std::hex << std::endl << addr << " " << m->GetLong(addr) << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void STR(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "STR" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LDRB(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "LDRB" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void STRB(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "STRB" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LDRH(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "LDRH" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void STRH(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "STRH" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LDSB(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "LDSB" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LDSH(Memory*, int32_t&, uint32_t)
+{
+  std::cerr << "LDSH" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void STMIA(Memory*, int32_t&, uint8_t)
+{
+  std::cerr << "STMIA" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+static inline void LDMIA(Memory*, int32_t&, uint8_t)
+{
+  std::cerr << "LDMIA" << std::endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
 void ThumbExecute(Emulator *emu)
 {
+  register uint32_t flags;
   register uint16_t op = 1;
-  register THUMBState *t;
+  register Memory *m;
+  register int32_t *r;
+  register int hilo;
+  THUMBState *t;
+  int32_t off;
 
-  void *jmp[] =
-  {
-    &&op_00, &&op_01, &&op_02, &&op_03, &&op_04, &&op_05, &&op_06, &&op_07,
-    &&op_08, &&op_09, &&op_0A, &&op_0B, &&op_0C, &&op_0D, &&op_0E, &&op_0F,
-    &&op_10, &&op_11, &&op_12, &&op_13, &&op_14, &&op_15, &&op_16, &&op_17,
-    &&op_18, &&op_19, &&op_1A, &&op_1B, &&op_1C, &&op_1D, &&op_1E, &&op_1F,
-    &&op_20, &&op_21, &&op_22, &&op_23, &&op_24, &&op_25, &&op_26, &&op_27,
-    &&op_28, &&op_29, &&op_2A, &&op_2B, &&op_2C, &&op_2D, &&op_2E, &&op_2F,
-    &&op_30, &&op_31, &&op_32, &&op_33, &&op_34, &&op_35, &&op_36, &&op_37,
-    &&op_38, &&op_39, &&op_3A, &&op_3B, &&op_3C, &&op_3D, &&op_3E, &&op_3F,
-    &&op_40, &&op_41, &&op_42, &&op_43, &&op_44, &&op_45, &&op_46, &&op_47,
-    &&op_48, &&op_49, &&op_4A, &&op_4B, &&op_4C, &&op_4D, &&op_4E, &&op_4F,
-    &&op_50, &&op_51, &&op_52, &&op_53, &&op_54, &&op_55, &&op_56, &&op_57,
-    &&op_58, &&op_59, &&op_5A, &&op_5B, &&op_5C, &&op_5D, &&op_5E, &&op_5F,
-    &&op_60, &&op_61, &&op_62, &&op_63, &&op_64, &&op_65, &&op_66, &&op_67,
-    &&op_68, &&op_69, &&op_6A, &&op_6B, &&op_6C, &&op_6D, &&op_6E, &&op_6F,
-    &&op_70, &&op_71, &&op_72, &&op_73, &&op_74, &&op_75, &&op_76, &&op_77,
-    &&op_78, &&op_79, &&op_7A, &&op_7B, &&op_7C, &&op_7D, &&op_7E, &&op_7F,
-  };
-
+  // Cache some pointers
   t = &emu->thumbState;
+  r = t->r;
+  m = &emu->mem;
 
-  end:
+  // Initial PC adjustment
+  hilo = (t->pc >> 1) & 1;
+  t->pc += hilo ? 2 : 0;
+
+  while (1)
   {
-    // Decodes the instruction & jumps to handler
-    op = emu->mem.GetInstrWord(t->pc);
-    t->pc += 2;
-    goto *jmp[op >> 9];
-  }
-
-  op_00: op_01: op_02: op_03: // LSL Rd, Rs, #Offset5
-    LSL(t, t->r[(op >> 0) & 7], t->r[(op >> 3) & 7], (op >> 6) & 0x1F);
-    goto end;
-
-  op_04: op_05: op_06: op_07: // LSR Rd, Rs, #Offset5
-    LSR(t, t->r[(op >> 0) & 7], t->r[(op >> 3) & 7], (op >> 6) & 0x1F);
-    goto end;
-
-  op_08: op_09: op_0A: op_0B: // ASR Rd, Rs, #Offset5
-    ASR(t, t->r[(op >> 0) & 7], t->r[(op >> 3) & 7], (op >> 6) & 0x1F);
-    goto end;
-
-  op_0C: // ADD Rr, Rb, Ra
-    ADD(t, t->r[(op >> 0) & 7], t->r[(op >> 6) & 7], t->r[(op >> 3) & 7]);
-    goto end;
-
-  op_0D: // SUB Rr, Rb, Ra
-    SUB(t, t->r[(op >> 0) & 7], t->r[(op >> 6) & 7], t->r[(op >> 3) & 7]);
-    goto end;
-
-  op_0E: // ADD Rr, Rb, #Offset3
-    ADD(t, t->r[(op >> 0) & 7], (op >> 6) & 7, t->r[(op >> 3) & 7]);
-    goto end;
-
-  op_0F: // SUB Rr, Rb, #Offset3
-    SUB(t, t->r[(op >> 0) & 7], (op >> 6) & 7, t->r[(op >> 3) & 7]);
-    goto end;
-
-  op_10: op_11: op_12: op_13: // MOV Rr, #Offset8
-    MOV(t, t->r[(op >> 8) & 7], op & 0xFF);
-    goto end;
-
-  op_14: op_15: op_16: op_17: // CMP Rd, #Offset8
-    CMP(t, t->r[(op >> 8) & 7], op & 0xFF);
-    goto end;
-
-  op_18: op_19: op_1A: op_1B: // ADD Rd, #Offset8
-    ADD(t, t->r[(op >> 0) & 7], (op >> 6) & 7, t->r[(op >> 3) & 7]);
-    goto end;
-
-  op_1C: op_1D: op_1E: op_1F: // SUB Rd, #Offset8
-    SUB(t, t->r[(op >> 8) & 7], op & 0xFF, t->r[(op >> 8) & 7]);
-    goto end;
-
-  op_20:
-  {
-    switch ((op >> 6) & 7)
+    // If instruction is in ITT block, it does not affect flags.
+    // In order to avoid affecting flags, we save the flags at
+    // the start of every cycle and restore them afterwards
+    if (t->itt)
     {
-      // AND Rd, Rs
-      case 0:
-      {
-        goto end;
-      }
-      // EOR Rd, Rs
-      case 1:
-      {
-        goto end;
-      }
-      // LSL Rd, Rs
-      case 2:
-      {
-        goto end;
-      }
-      // LSR Rd, Rs
-      case 3:
-      {
-        goto end;
-      }
-      // ASR Rd, Rs
-      case 4:
-      {
-        goto end;
-      }
-      // ADC Rd, Rs
-      case 5:
-      {
-        goto end;
-      }
-      // SBC Rd, Rs
-      case 6:
-      {
-        goto end;
-      }
-      // ROR Rd, Rs
-      case 7:
-      {
-        goto end;
-      }
-      default:
-      {
-        /* LCOV_EXCL_LINE */
-        __builtin_unreachable();
-      }
+      t->flags = flags;
     }
-  }
-  op_21:
-  {
-    switch ((op >> 6) & 7)
+    flags = t->flags;
+
+
+    // Ajust PC for the pipelining effect. If the address is not
+    // a multiple of 4, PC must point to the next 4 byte aligned
+    // address, otherwise PC is advanced by 4 relative to the
+    // current address
+    if ((hilo = !hilo))
     {
-      // TST Rd, Rs
-      case 0:
-      {
-        goto end;
-      }
-      // NEG Rd, Rs
-      case 1:
-      {
-        goto end;
-      }
-      // CMP Rd, Rs
-      case 2:
-      {
-        goto end;
-      }
-      // CMN Rd, Rs
-      case 3:
-      {
-        goto end;
-      }
-      // ORR Rd, Rs
-      case 4:
-      {
-        goto end;
-      }
-      // MUL Rd, Rs
-      case 5:
-      {
-        goto end;
-      }
-      // BIC Rd, Rs
-      case 6:
-      {
-        goto end;
-      }
-      // MVN Rd, Rs
-      case 7:
-      {
-        goto end;
-      }
-      default:
-      {
-        /* LCOV_EXCL_LINE */
-        __builtin_unreachable();
-      }
-    }
-  }
-
-  op_22: op_23:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDR Rd, [PC, #Imm]
-  op_24: op_25: op_26: op_27:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STR Rd, [Rb, Ro]
-  op_28:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STRH Rd, [Rb, Ro]
-  op_29:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STRB Rd, [Rb, Ro]
-  op_2A:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDRH Rd, [Rb, Ro]
-  op_2B:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDR Rd, [Rb, Ro] L
-  op_2C:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDSB Rd, [Rb, Ro]
-  op_2D:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDRB Rd, [Rb, Ro]
-  op_2E:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDSH Rd, [Rb, Ro]
-  op_2F:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STR Rd, [Rb, #Imm]
-  op_30: op_31: op_32: op_33:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDR Rd, [Rb, #Imm]
-  op_34: op_35: op_36: op_37:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STRB Rd, [Rb, #Imm]
-  op_38: op_39: op_3A: op_3B:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDRB Rd, [Rb, #Imm]
-  op_3C: op_3D: op_3E: op_3F:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STRH Rd, [Rb, #Imm]
-  op_40: op_41: op_42: op_43:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDRH Rd, [Rb, #Imm]
-  op_44: op_45: op_46: op_47:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // STR Rd, [SP, #Imm]
-  op_48: op_49: op_4A: op_4B:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDR Rd, [SP, #Imm]
-  op_4C: op_4D: op_4E: op_4F:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  op_50: op_51: op_52: op_53:
-  {
-    // ADD Rd, PC, #Imm8
-    ADD(t, t->r[(op >> 8) & 3], t->pc, (op & 0xFF) << 2);
-    goto end;
-  }
-  op_54: op_55: op_56: op_57:
-  {
-    // ADD Rd, SP, #Imm8
-    ADD(t, t->r[(op >> 8) & 3], t->sp, (op & 0xFF) << 2);
-    goto end;
-  }
-
-  op_58: op_59: op_5A: op_5B: op_5C: op_5D: op_5E: op_5F:
-  {
-    // Miscellaneous
-    switch ((op >> 5) & 0x7F)
-    {
-      case 0x00 ... 0x03:
-      {
-        // ADD SP, SP, #Imm7
-        goto end;
-      }
-      case 0x04 ... 0x07:
-      {
-        // SUB SP, SP, #Imm7
-        goto end;
-      }
-      case 0x10 ... 0x11:
-      {
-        // SXTH
-        goto end;
-      }
-      case 0x12 ... 0x13:
-      {
-        // SXTB
-        goto end;
-      }
-      case 0x14 ... 0x15:
-      {
-        // UXTH
-        goto end;
-      }
-      case 0x16 ... 0x17:
-      {
-        // UXTB
-        goto end;
-      }
-      case 0x20 ... 0x2F:
-      {
-        // PUSH
-        goto end;
-      }
-      case 0x33:
-      {
-        // CPS
-        goto end;
-      }
-      case 0x50 ... 0x51:
-      {
-        // REV
-        goto end;
-      }
-      case 0x52 ... 0x53:
-      {
-        // REV16
-        goto end;
-      }
-      case 0x54 ... 0x55:
-      {
-        // REVSH
-        goto end;
-      }
-      case 0x60 ... 0x6F:
-      {
-        // POP
-        goto end;
-      }
-      case 0x70 ... 0x77:
-      {
-        // BKPT
-        goto end;
-      }
-      case 0x78 ... 0x7F:
-      {
-        if (op & 0xF)
-        {
-          // IT
-          goto end;
-        }
-
-        switch ((op >> 4) & 0xF)
-        {
-          case 0x0:
-          {
-            // NOP
-            goto end;
-          }
-          case 0x1:
-          {
-            // YIELD
-            goto end;
-          }
-          case 0x2:
-          {
-            // WFE
-            goto end;
-          }
-          case 0x3:
-          {
-            // WFI
-            goto end;
-          }
-          case 0x4:
-          {
-            // SEV
-            goto end;
-          }
-        }
-      }
-      default:
-      {
-        // TODO
-        __builtin_trap();
-      }
-    }
-  }
-
-  // STMIA Rb!, { Rlist }
-  op_60: op_61: op_62: op_63:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // LDMIA Rb!, { Rlist }
-  op_64: op_65: op_66: op_67:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  op_68: op_69: op_6A: op_6B: op_6C: op_6D: op_6E:
-  {
-    // Bcc label
-    Branch(t, op);
-    goto end;
-  }
-
-  op_6F:
-  {
-    if ((op >> 8) & 0x1)
-    {
-      // SWI - quit for now
-      return;
-      goto end;
+      op = emu->mem.GetInstrWord(t->pc);
+      t->pc += 4;
     }
     else
     {
-      // UND
-      goto end;
+      op = emu->mem.GetInstrWord(t->pc - 2);
+    }
+
+
+    // Decode the instructions. The most significant 7 bits should
+    // be enough to distinguish most instrucitions, but additional
+    // switch statements are required for some categories such as
+    // ALU operations and miscellaneous instructions
+    switch (op >> 9)
+    {
+      case 0x00 ... 0x03: LSL  (t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);           continue;
+      case 0x04 ... 0x07: LSR  (t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);           continue;
+      case 0x08 ... 0x0B: ASR  (t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);           continue;
+      case 0x28:          STR  (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x29:          STRH (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2A:          STRB (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2B:          LDRH (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2C:          LDR  (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2D:          LDSB (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2E:          LDRB (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2F:          LDSH (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x30 ... 0x33: STR  (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F)); continue;
+      case 0x34 ... 0x37: LDR  (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F)); continue;
+      case 0x38 ... 0x3B: STRB (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));      continue;
+      case 0x3C ... 0x3F: LDRB (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));      continue;
+      case 0x40 ... 0x43: STRH (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F)); continue;
+      case 0x44 ... 0x47: LDRH (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F)); continue;
+      case 0x0C:          ADD  (t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);         continue;
+      case 0x0D:          SUB  (t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);         continue;
+      case 0x0E:          ADD  (t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);            continue;
+      case 0x0F:          SUB  (t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);            continue;
+      case 0x24 ... 0x27: LDR  (m, r[op & 7], t->pc + ((op & 0xFF) << 2));                 continue;
+      case 0x10 ... 0x13: MOV  (t, r[(op >> 8) & 7], op & 0xFF);                           continue;
+      case 0x14 ... 0x17: CMP  (t, r[(op >> 8) & 7], op & 0xFF);                           continue;
+      case 0x18 ... 0x1B: ADD  (t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);         continue;
+      case 0x1C ... 0x1F: SUB  (t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);         continue;
+      case 0x48 ... 0x4B: STR  (m, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));          continue;
+      case 0x4C ... 0x4F: LDR  (m, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));          continue;
+      case 0x60 ... 0x63: STMIA(m, r[(op >> 8) & 7], op & 0xFF);                           continue;
+      case 0x64 ... 0x67: LDMIA(m, r[(op >> 8) & 7], op & 0xFF);                           continue;
+      case 0x68 ... 0x6E: BCC  (t, op);                                                    continue;
+      case 0x70 ... 0x73: BAL  (t, op);                                                    continue;
+      case 0x78 ... 0x7B: BLO  (t, op >> 9);                                               continue;
+      case 0x7C ... 0x7F: BLH  (t, op >> 9);                                               continue;
+      case 0x50 ... 0x53: r[(op >> 8) & 3] = t->pc + ((op & 0xFF) << 2);                   continue;
+      case 0x54 ... 0x57: r[(op >> 8) & 3] = t->sp + ((op & 0xFF) << 2);                   continue;
+      case 0x22 ... 0x23:
+        switch ((op >> 6) & 0xF)
+        {
+          case 0x1: ADD(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0x2: ADD(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
+          case 0x3: ADD(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0x5: CMP(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0x6: CMP(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
+          case 0x7: CMP(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0x9: MOV(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0xA: MOV(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
+          case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0xC: // Bx
+          case 0xD: // Bx
+          default: goto und;
+        }
+      case 0x20 ... 0x21:
+        switch ((op >> 6) & 0xF)
+        {
+          case 0x0: AND(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x1: EOR(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x2: LSL(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x3: LSR(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x4: ASR(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x5: ADC(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x6: SBC(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x7: ROR(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x8: TST(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x9: NEG(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0xA: CMP(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0xB: CMN(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0xC: ORR(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0xD: MUL(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0xE: BIC(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0xF: MVN(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          default: /* LCOV_EXCL_START */ __builtin_unreachable();
+        }
+      case 0x58 ... 0x5F:
+        switch ((op >> 5) & 0x7F)
+        {
+          case 0x00 ... 0x03: /*ADD SP, SP, #Imm7*/ continue;
+          case 0x04 ... 0x07: /*SUB SP, SP, #Imm7*/ continue;
+          case 0x10 ... 0x11: /*SXTH*/              continue;
+          case 0x12 ... 0x13: /*SXTB*/              continue;
+          case 0x14 ... 0x15: /*UXTH*/              continue;
+          case 0x16 ... 0x17: /*UXTB*/              continue;
+          case 0x20 ... 0x2F: /*PUSH*/              continue;
+          case 0x33:          /*CPS*/               continue;
+          case 0x50 ... 0x51: /*REV*/               continue;
+          case 0x52 ... 0x53: /*REV16*/             continue;
+          case 0x54 ... 0x55: /*REVSH*/             continue;
+          case 0x60 ... 0x6F: /*POP*/               continue;
+          case 0x70 ... 0x77: /*BKPT*/              continue;
+          case 0x78 ... 0x7F:
+          {
+            if (op & 0xF)
+            {
+              // IT
+              continue;
+            }
+
+            switch ((op >> 4) & 0xF)
+            {
+              case 0x0: /*NOP*/   continue;
+              case 0x1: /*YIELD*/ continue;
+              case 0x2: /*WFE*/   continue;
+              case 0x3: /*WFI*/   continue;
+              case 0x4: /*SEV*/   continue;
+            }
+          }
+          default: /* UND */ continue;
+        }
+      case 0x74 ... 0x77: /*THUMB2*/ __builtin_trap(); continue;
+      case 0x6F:
+        if ((op >> 8) & 0x1)
+        {
+          // SWI - quit for now
+          goto swi;
+        }
+        else
+        {
+          // UND
+          goto und;
+        }
     }
   }
 
-  // B label
-  op_70: op_71: op_72: op_73:
+  // Swap to ARM
+  bx:
   {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
+    return;
   }
 
-  op_74: op_75: op_76: op_77:
+  // Software interrupt
+  swi:
   {
-    // TODO
-    __builtin_trap();
+    return;
   }
 
-  // BLO
-  op_78: op_79: op_7A: op_7B:
+  // Undefined interrupt
+  und:
   {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
-  }
-
-  // BLH
-  op_7C: op_7D: op_7E: op_7F:
-  {
-    fprintf(stderr, "%02x\n", op >> 9);
-    goto end;
+    return;
   }
 }

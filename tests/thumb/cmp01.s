@@ -8,10 +8,13 @@ entry:
   bx  r6
 thumb:
   .code 16
+  mov     r1, #100
+  mov     r2, #200
+  cmp     r1, r2
+  bge     1f
+  mov     r3, #1
+  b       2f
 1:
-  mov     r1, #255
-  mov     r2, #255
-  sub     r1, r2
-  mov     r4, #255
-  sub     r4, #255
-  swi     0x0
+  mov     r3, #2
+2:
+  swi     #0xF

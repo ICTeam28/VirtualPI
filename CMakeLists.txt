@@ -2,7 +2,7 @@
 # Licensing information can be found in the LICENSE file
 # (C) 2014 The Team 28 Authors. All rights reserved.
 cmake_minimum_required(VERSION 2.8)
-project(piemu)
+project(vpi)
 
 
 # Dependencies
@@ -21,8 +21,8 @@ endif()
 
 
 # C++ flags
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=gnu11")
-set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS}   -std=gnu++11")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=gnu11 -m32")
+set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS} -std=gnu++11 -m32")
 
 
 # C++ sources
@@ -54,16 +54,16 @@ set(LIBS
 
 
 # Executable
-add_executable(piemu main.cc ${SOURCES} ${HEADERS})
-target_link_libraries(piemu ${LIBS})
+add_executable(vpi main.cc ${SOURCES} ${HEADERS})
+target_link_libraries(vpi ${LIBS})
 
 
 # Test executable
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
   # Set up a test wrapper
-  add_executable(piemu_test test.cc ${SOURCES} ${HEADERS})
-  target_link_libraries(piemu_test gcov ${LIBS})
+  add_executable(vpi_test test.cc ${SOURCES} ${HEADERS})
+  target_link_libraries(vpi_test gcov ${LIBS})
 
 
   # Set up gcov
