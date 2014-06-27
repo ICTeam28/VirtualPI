@@ -406,9 +406,9 @@ static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDR(Memory *m, int32_t&, uint32_t addr)
+static inline void LDR(Memory *m, int32_t &r, uint32_t addr)
 {
-  std::cerr << std::hex << std::endl << addr << " " << m->GetLong(addr) << std::endl;
+  r = m->GetLong(addr);
 }
 
 
@@ -549,7 +549,7 @@ void ThumbExecute(Emulator *emu)
       case 0x0D:          SUB  (t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);         continue;
       case 0x0E:          ADD  (t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);            continue;
       case 0x0F:          SUB  (t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);            continue;
-      case 0x24 ... 0x27: LDR  (m, r[op & 7], t->pc + ((op & 0xFF) << 2));                 continue;
+      case 0x24 ... 0x27: LDR  (m, r[(op >> 8) & 7], t->pc + ((op & 0xFF) << 2));          continue;
       case 0x10 ... 0x13: MOV  (t, r[(op >> 8) & 7], op & 0xFF);                           continue;
       case 0x14 ... 0x17: CMP  (t, r[(op >> 8) & 7], op & 0xFF);                           continue;
       case 0x18 ... 0x1B: ADD  (t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);         continue;
@@ -634,20 +634,20 @@ void ThumbExecute(Emulator *emu)
               case 0x4: /*SEV*/   continue;
             }
           }
-          default: /* UND */ continue;
+          default: goto und;
         }
       case 0x74 ... 0x77: /*THUMB2*/ __builtin_trap(); continue;
       case 0x6F:
+      {
         if ((op >> 8) & 0x1)
         {
-          // SWI - quit for now
           goto swi;
         }
         else
         {
-          // UND
           goto und;
         }
+      }
     }
   }
 
