@@ -5,14 +5,14 @@
 
 // -------------------------------------------------------------------------------------------------
 template<bool I, bool P, bool U, bool B, bool W, bool L>
-static inline void SingleDataTrans(ARMState *t, uint32_t op)
+static inline void SingleDataTrans(ARMData *t, uint32_t op)
 {
 
 }
 
 
 // -------------------------------------------------------------------------------------------------
-void ARMExecute(ARMState *t)
+void ARMExecute(ARMData *t)
 {
   register uint32_t op;
 

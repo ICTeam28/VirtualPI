@@ -11,6 +11,16 @@ class Memory;
 
 
 /**
+ * ARM state
+ */
+enum ARMState
+{
+  ARM_STATE_ARM,
+  ARM_STATE_THUMB,
+  ARM_STATE_JAZELLE
+};
+
+/**
  * ARM operating modes
  */
 enum ARMMode
@@ -19,6 +29,7 @@ enum ARMMode
   ARM_MODE_FIQ = 0x11,
   ARM_MODE_IRQ = 0x12,
   ARM_MODE_SVC = 0x13,
+  ARM_MODE_MON = 0x16,
   ARM_MODE_ABT = 0x17,
   ARM_MODE_UND = 0x1B,
   ARM_MODE_SYS = 0x1F
@@ -42,17 +53,23 @@ enum ARMException
   /// Software interrupt
   ARM_EXC_SWI,
 
+  /// System monitor
+  ARM_EXC_SMC,
+
   /// Prefetch abort
-  ARM_EXC_PREFETCH_ABORT,
+  ARM_EXC_PABT,
 
   /// Data abort
-  ARM_EXC_DATA_ABORT,
+  ARM_EXC_DABT,
 
   /// Interrupt request
   ARM_EXC_IRQ,
 
   /// Fast interrupt request
   ARM_EXC_FIQ,
+
+  /// Software breakpoint
+  ARM_EXC_BKPT,
 
   /// Switch to ARM
   ARM_EXC_TOARM,
@@ -65,7 +82,7 @@ enum ARMException
 /**
  * ARM unit state
  */
-struct ARMState
+struct ARMData
 {
   /// Registers
   union
@@ -131,7 +148,7 @@ struct ARMState
  *
  * @param emu Pointer to the emulator state
  */
-void ARMExecute(ARMState *emu);
+void ARMExecute(ARMData *emu);
 
 
 #endif /*__ARM_H__*/
