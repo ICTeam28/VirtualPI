@@ -5,10 +5,16 @@
 
 
 // -------------------------------------------------------------------------------------------------
+// Branch functions
+// -------------------------------------------------------------------------------------------------
 static void BCC(THUMBState*, uint16_t) FORCEINLINE;
 static void BAL(THUMBState*, uint16_t) FORCEINLINE;
 static void BLO(THUMBState*, uint16_t) FORCEINLINE;
 static void BLH(THUMBState*, uint16_t) FORCEINLINE;
+
+// -------------------------------------------------------------------------------------------------
+// 2 Operand ALU
+// -------------------------------------------------------------------------------------------------
 static void ADD(THUMBState*, int32_t&, int32_t) FORCEINLINE;
 static void AND(THUMBState*, int32_t&, int32_t) FORCEINLINE;
 static void EOR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
@@ -27,21 +33,29 @@ static void MUL(THUMBState*, int32_t&, int32_t) FORCEINLINE;
 static void BIC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
 static void MVN(THUMBState*, int32_t&, int32_t) FORCEINLINE;
 static void MOV(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+
+// -------------------------------------------------------------------------------------------------
+// 3 Operand ALU
+// -------------------------------------------------------------------------------------------------
 static void LSL(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
 static void LSR(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
 static void ASR(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
 static void ADD(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
 static void SUB(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void LDR(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void STR(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRB(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSB(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void STRB(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRH(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSH(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void STRH(Memory*, int32_t&, uint32_t) FORCEINLINE;
-static void STMIA(Memory*, int32_t&, uint8_t) FORCEINLINE;
-static void LDMIA(Memory*, int32_t&, uint8_t) FORCEINLINE;
+
+// -------------------------------------------------------------------------------------------------
+// Memory Load/Store
+// -------------------------------------------------------------------------------------------------
+static void LDR  (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void STR  (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRB (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSB (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void STRB (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRH (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSH (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void STRH (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
+static void STMIA(THUMBState*, int32_t&, uint8_t)  FORCEINLINE;
+static void LDMIA(THUMBState*, int32_t&, uint8_t)  FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
@@ -406,70 +420,70 @@ static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDR(Memory *m, int32_t &r, uint32_t addr)
+static inline void LDR(THUMBState *t, int32_t &r, uint32_t addr)
 {
-  r = m->GetLong(addr);
+  r = t->mem->GetLong(addr);
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STR(Memory*, int32_t&, uint32_t)
+static inline void STR(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "STR" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDRB(Memory*, int32_t&, uint32_t)
+static inline void LDRB(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STRB(Memory*, int32_t&, uint32_t)
+static inline void STRB(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "STRB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDRH(Memory*, int32_t&, uint32_t)
+static inline void LDRH(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STRH(Memory*, int32_t&, uint32_t)
+static inline void STRH(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "STRH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDSB(Memory*, int32_t&, uint32_t)
+static inline void LDSB(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDSH(Memory*, int32_t&, uint32_t)
+static inline void LDSH(THUMBState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STMIA(Memory*, int32_t&, uint8_t)
+static inline void STMIA(THUMBState*, int32_t&, uint8_t)
 {
   std::cerr << "STMIA" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDMIA(Memory*, int32_t&, uint8_t)
+static inline void LDMIA(THUMBState*, int32_t&, uint8_t)
 {
   std::cerr << "LDMIA" << std::endl;
 }
@@ -480,7 +494,6 @@ void ThumbExecute(Emulator *emu)
 {
   register uint32_t flags;
   register uint16_t op = 1;
-  register Memory *m;
   register int32_t *r;
   register int hilo;
   THUMBState *t;
@@ -489,7 +502,6 @@ void ThumbExecute(Emulator *emu)
   // Cache some pointers
   t = &emu->thumbState;
   r = t->r;
-  m = &emu->mem;
 
   // Initial PC adjustment
   hilo = (t->pc >> 1) & 1;
@@ -531,33 +543,33 @@ void ThumbExecute(Emulator *emu)
       case 0x00 ... 0x03: LSL  (t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);           continue;
       case 0x04 ... 0x07: LSR  (t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);           continue;
       case 0x08 ... 0x0B: ASR  (t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);           continue;
-      case 0x28:          STR  (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x29:          STRH (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x2A:          STRB (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x2B:          LDRH (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x2C:          LDR  (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x2D:          LDSB (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x2E:          LDRB (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x2F:          LDSH (m, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
-      case 0x30 ... 0x33: STR  (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F)); continue;
-      case 0x34 ... 0x37: LDR  (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F)); continue;
-      case 0x38 ... 0x3B: STRB (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));      continue;
-      case 0x3C ... 0x3F: LDRB (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));      continue;
-      case 0x40 ... 0x43: STRH (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F)); continue;
-      case 0x44 ... 0x47: LDRH (m, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F)); continue;
+      case 0x28:          STR  (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x29:          STRH (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2A:          STRB (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2B:          LDRH (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2C:          LDR  (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2D:          LDSB (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2E:          LDRB (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x2F:          LDSH (t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);        continue;
+      case 0x30 ... 0x33: STR  (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F)); continue;
+      case 0x34 ... 0x37: LDR  (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F)); continue;
+      case 0x38 ... 0x3B: STRB (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));      continue;
+      case 0x3C ... 0x3F: LDRB (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));      continue;
+      case 0x40 ... 0x43: STRH (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F)); continue;
+      case 0x44 ... 0x47: LDRH (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F)); continue;
       case 0x0C:          ADD  (t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);         continue;
       case 0x0D:          SUB  (t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);         continue;
       case 0x0E:          ADD  (t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);            continue;
       case 0x0F:          SUB  (t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);            continue;
-      case 0x24 ... 0x27: LDR  (m, r[(op >> 8) & 7], t->pc + ((op & 0xFF) << 2));          continue;
       case 0x10 ... 0x13: MOV  (t, r[(op >> 8) & 7], op & 0xFF);                           continue;
       case 0x14 ... 0x17: CMP  (t, r[(op >> 8) & 7], op & 0xFF);                           continue;
       case 0x18 ... 0x1B: ADD  (t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);         continue;
       case 0x1C ... 0x1F: SUB  (t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);         continue;
-      case 0x48 ... 0x4B: STR  (m, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));          continue;
-      case 0x4C ... 0x4F: LDR  (m, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));          continue;
-      case 0x60 ... 0x63: STMIA(m, r[(op >> 8) & 7], op & 0xFF);                           continue;
-      case 0x64 ... 0x67: LDMIA(m, r[(op >> 8) & 7], op & 0xFF);                           continue;
+      case 0x24 ... 0x27: LDR  (t, r[(op >> 8) & 7], t->pc + ((op & 0xFF) << 2));          continue;
+      case 0x48 ... 0x4B: STR  (t, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));          continue;
+      case 0x4C ... 0x4F: LDR  (t, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));          continue;
+      case 0x60 ... 0x63: STMIA(t, r[(op >> 8) & 7], op & 0xFF);                           continue;
+      case 0x64 ... 0x67: LDMIA(t, r[(op >> 8) & 7], op & 0xFF);                           continue;
       case 0x68 ... 0x6E: BCC  (t, op);                                                    continue;
       case 0x70 ... 0x73: BAL  (t, op);                                                    continue;
       case 0x78 ... 0x7B: BLO  (t, op >> 9);                                               continue;

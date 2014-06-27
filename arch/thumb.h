@@ -10,6 +10,7 @@
  */
 struct THUMBState
 {
+  /// Registers
   union
   {
     struct
@@ -35,6 +36,7 @@ struct THUMBState
     int32_t r[0x10];
   };
 
+  /// Arithmetic flags
   union
   {
     struct
@@ -51,6 +53,9 @@ struct THUMBState
 
   /// ITT state
   uint8_t  itt;
+
+  /// Memory module
+  Memory *mem;
 };
 
 
@@ -59,12 +64,6 @@ struct THUMBState
  * @param emu Pointer to the emulator state
  */
 void ThumbExecute(Emulator *emu);
-
-
-/**
- * Switch to THUMB mode
- */
-void ThumbSwitch(Emulator *emu);
 
 
 #endif /*__THUMB_H__*/

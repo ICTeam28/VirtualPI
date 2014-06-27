@@ -9,13 +9,21 @@
  */
 class Memory;
 
+
 /**
  * ARM operation mode
  */
 enum ARMMode
 {
-
+  ARM_MODE_USR = 0x10,
+  ARM_MODE_FIQ = 0x11,
+  ARM_MODE_IRQ = 0x12,
+  ARM_MODE_SVC = 0x13,
+  ARM_MODE_ABT = 0x17,
+  ARM_MODE_UND = 0x1B,
+  ARM_MODE_SYS = 0x1F
 };
+
 
 /**
  * ARM unit state
@@ -49,5 +57,6 @@ struct ARMState
   /// Thumb bit
   uint8_t T;
 };
+
 
 #endif /*__ARM_H__*/

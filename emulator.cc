@@ -11,6 +11,8 @@ Emulator::Emulator(const Args& args)
 {
   memset(&thumbState, 0, sizeof(THUMBState));
   mem.LoadImage(args.image, 0);
+
+  thumbState.mem = &mem;
   thumbState.pc = 8;
 }
 
