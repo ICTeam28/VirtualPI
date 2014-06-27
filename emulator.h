@@ -60,7 +60,7 @@ public:
   /**
    * Dumps the THUMB state
    */
-  void DumpTHUMB(std::ostream& os);
+  void DumpState(std::ostream& os);
 
 private:
 
@@ -72,9 +72,6 @@ private:
 
   /// ARM state
   ARMState armState;
-
-  /// THUMB state
-  THUMBState thumbState;
 
   /// Thumb
   friend void ThumbExecute(Emulator *emu);

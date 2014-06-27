@@ -7,59 +7,59 @@
 // -------------------------------------------------------------------------------------------------
 // Branch functions
 // -------------------------------------------------------------------------------------------------
-static void BCC(THUMBState*, uint16_t) FORCEINLINE;
-static void BAL(THUMBState*, uint16_t) FORCEINLINE;
-static void BLO(THUMBState*, uint16_t) FORCEINLINE;
-static void BLH(THUMBState*, uint16_t) FORCEINLINE;
+static void BCC(ARMState*, uint16_t) FORCEINLINE;
+static void BAL(ARMState*, uint16_t) FORCEINLINE;
+static void BLO(ARMState*, uint16_t) FORCEINLINE;
+static void BLH(ARMState*, uint16_t) FORCEINLINE;
 
 // -------------------------------------------------------------------------------------------------
 // 2 Operand ALU
 // -------------------------------------------------------------------------------------------------
-static void ADD(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void AND(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void EOR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void LSL(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void LSR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void ASR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void ADC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void SBC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void ROR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void TST(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void NEG(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void CMP(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void CMN(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void ORR(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void MUL(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void BIC(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void MVN(THUMBState*, int32_t&, int32_t) FORCEINLINE;
-static void MOV(THUMBState*, int32_t&, int32_t) FORCEINLINE;
+static void ADD(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void AND(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void EOR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void LSL(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void LSR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ASR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ADC(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void SBC(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ROR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void TST(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void NEG(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void CMP(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void CMN(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ORR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void MUL(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void BIC(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void MVN(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void MOV(ARMState*, int32_t&, int32_t) FORCEINLINE;
 
 // -------------------------------------------------------------------------------------------------
 // 3 Operand ALU
 // -------------------------------------------------------------------------------------------------
-static void LSL(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void LSR(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void ASR(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void ADD(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void SUB(THUMBState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void LSL(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void LSR(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void ASR(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void ADD(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void SUB(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
 
 // -------------------------------------------------------------------------------------------------
 // Memory Load/Store
 // -------------------------------------------------------------------------------------------------
-static void LDR  (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void STR  (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRB (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSB (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void STRB (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRH (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSH (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void STRH (THUMBState*, int32_t&, uint32_t) FORCEINLINE;
-static void STMIA(THUMBState*, int32_t&, uint8_t)  FORCEINLINE;
-static void LDMIA(THUMBState*, int32_t&, uint8_t)  FORCEINLINE;
+static void LDR  (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STR  (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STRB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STRH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
+static void LDMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BCC(THUMBState *t, uint16_t op)
+static inline void BCC(ARMState *t, uint16_t op)
 {
   int32_t off;
 
@@ -95,7 +95,7 @@ static inline void BCC(THUMBState *t, uint16_t op)
 }
 
 // -------------------------------------------------------------------------------------------------
-static inline void BAL(THUMBState *t, uint16_t op)
+static inline void BAL(ARMState *t, uint16_t op)
 {
   int32_t off;
 
@@ -109,21 +109,21 @@ static inline void BAL(THUMBState *t, uint16_t op)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BLO(THUMBState*, uint16_t)
+static inline void BLO(ARMState*, uint16_t)
 {
 
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BLH(THUMBState*, uint16_t)
+static inline void BLH(ARMState*, uint16_t)
 {
 
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADD(THUMBState *t, int32_t &r, int32_t a)
+static inline void ADD(ARMState *t, int32_t &r, int32_t a)
 {
   asm volatile
     ( "addl   %[A], %[R]       \n\t"
@@ -143,77 +143,77 @@ static inline void ADD(THUMBState *t, int32_t &r, int32_t a)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void AND(THUMBState *t, int32_t &d, int32_t s)
+static inline void AND(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void EOR(THUMBState *t, int32_t &d, int32_t s)
+static inline void EOR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSL(THUMBState *t, int32_t &d, int32_t s)
+static inline void LSL(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSR(THUMBState *t, int32_t &d, int32_t s)
+static inline void LSR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ASR(THUMBState *t, int32_t &d, int32_t s)
+static inline void ASR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADC(THUMBState *t, int32_t &d, int32_t s)
+static inline void ADC(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void SBC(THUMBState *t, int32_t &d, int32_t s)
+static inline void SBC(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ROR(THUMBState *t, int32_t &d, int32_t s)
+static inline void ROR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void TST(THUMBState *t, int32_t &d, int32_t s)
+static inline void TST(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void NEG(THUMBState *t, int32_t &d, int32_t s)
+static inline void NEG(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void CMP(THUMBState *t, int32_t &d, int32_t s)
+static inline void CMP(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[D], %%eax      \n\t"
@@ -234,7 +234,7 @@ static inline void CMP(THUMBState *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void CMN(THUMBState *t, int32_t &d, int32_t s)
+static inline void CMN(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[D], %%eax      \n\t"
@@ -255,28 +255,28 @@ static inline void CMN(THUMBState *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ORR(THUMBState *t, int32_t &d, int32_t s)
+static inline void ORR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void MUL(THUMBState *t, int32_t &d, int32_t s)
+static inline void MUL(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BIC(THUMBState *t, int32_t &d, int32_t s)
+static inline void BIC(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void MVN(THUMBState *t, int32_t &d, int32_t s)
+static inline void MVN(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[S], %[D]       \n\t"
@@ -294,7 +294,7 @@ static inline void MVN(THUMBState *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void MOV(THUMBState *t, int32_t &d, int32_t s)
+static inline void MOV(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[S], %[D]       \n\t"
@@ -311,7 +311,7 @@ static inline void MOV(THUMBState *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSL(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+static inline void LSL(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[A], %%eax      \n\t"
@@ -332,7 +332,7 @@ static inline void LSL(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+static inline void LSR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[A], %%eax      \n\t"
@@ -353,7 +353,7 @@ static inline void LSR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ASR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+static inline void ASR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[A], %%eax      \n\t"
@@ -374,7 +374,7 @@ static inline void ASR(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADD(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+static inline void ADD(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[B], %%eax      \n\t"
@@ -397,7 +397,7 @@ static inline void ADD(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
+static inline void SUB(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[B], %%eax      \n\t"
@@ -420,94 +420,96 @@ static inline void SUB(THUMBState *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDR(THUMBState *t, int32_t &r, uint32_t addr)
+static inline void LDR(ARMState *t, int32_t &r, uint32_t addr)
 {
   r = t->mem->GetLong(addr);
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STR(THUMBState*, int32_t&, uint32_t)
+static inline void STR(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STR" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDRB(THUMBState*, int32_t&, uint32_t)
+static inline void LDRB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STRB(THUMBState*, int32_t&, uint32_t)
+static inline void STRB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STRB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDRH(THUMBState*, int32_t&, uint32_t)
+static inline void LDRH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STRH(THUMBState*, int32_t&, uint32_t)
+static inline void STRH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STRH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDSB(THUMBState*, int32_t&, uint32_t)
+static inline void LDSB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDSH(THUMBState*, int32_t&, uint32_t)
+static inline void LDSH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STMIA(THUMBState*, int32_t&, uint8_t)
+static inline void STMIA(ARMState*, int32_t&, uint8_t)
 {
   std::cerr << "STMIA" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDMIA(THUMBState*, int32_t&, uint8_t)
+static inline void LDMIA(ARMState*, int32_t&, uint8_t)
 {
   std::cerr << "LDMIA" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-void ThumbExecute(Emulator *emu)
+void ThumbExecute(ARMState *t)
 {
   register uint32_t flags;
-  register uint16_t op = 1;
+  register uint16_t op;
   register int32_t *r;
   register int hilo;
-  THUMBState *t;
+  uint32_t instr;
   int32_t off;
 
   // Cache some pointers
-  t = &emu->thumbState;
   r = t->r;
 
   // Initial PC adjustment
-  hilo = (t->pc >> 1) & 1;
-  t->pc += hilo ? 2 : 0;
+  if ((hilo = (t->pc >> 1) & 1))
+  {
+    t->pc += 2;
+    instr = t->mem->GetInstrLong(t->pc - 4);
+  }
 
-  while (1)
+  while (true)
   {
     // If instruction is in ITT block, it does not affect flags.
     // In order to avoid affecting flags, we save the flags at
@@ -519,20 +521,33 @@ void ThumbExecute(Emulator *emu)
     flags = t->flags;
 
 
-    // Ajust PC for the pipelining effect. If the address is not
-    // a multiple of 4, PC must point to the next 4 byte aligned
-    // address, otherwise PC is advanced by 4 relative to the
-    // current address
-    if ((hilo = !hilo))
+    // hilo keeps track whether we are loading the higher or lower
+    // word of an instruction. In case it gets misaligned after
+    // a jump, the program counter must be ajusted
+    if ((t->pc >> 1) & 1)
     {
-      op = emu->mem.GetInstrWord(t->pc);
-      t->pc += 4;
+      hilo = 0;
+      instr = t->mem->GetInstrLong(t->pc - 2);
+      op = instr >> 16;
+      t->pc += 2;
     }
     else
     {
-      op = emu->mem.GetInstrWord(t->pc - 2);
+      // Ajust PC for the pipelining effect. If the address is not a
+      // multiple of 4, PC must point to the next 4 byte aligned address,
+      // otherwise PC is advanced by 4 relative to the current address
+      if ((hilo = !hilo))
+      {
+        instr = t->mem->GetInstrLong(t->pc);
+        op = instr & 0xFFFF;
+        t->pc += 4;
+      }
+      else
+      {
+        instr = t->mem->GetInstrLong(t->pc - 4);
+        op = instr >> 16;
+      }
     }
-
 
     // Decode the instructions. The most significant 7 bits should
     // be enough to distinguish most instrucitions, but additional

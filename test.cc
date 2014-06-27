@@ -56,7 +56,7 @@ int RunTest(const char *path, const struct stat *sb, int type)
         args.image = path;
         Emulator emu(args);
         emu.Run();
-        emu.DumpTHUMB(out);
+        emu.DumpState(out);
       }
 
       if (expected == out.str())

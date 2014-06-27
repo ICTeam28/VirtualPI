@@ -30,33 +30,61 @@ enum ARMMode
  */
 struct ARMState
 {
-  /// r0 - r15
-  uint32_t r[0xF];
+  /// Registers
+  union
+  {
+    struct
+    {
+      uint32_t r0;
+      uint32_t r1;
+      uint32_t r2;
+      uint32_t r3;
+      uint32_t r4;
+      uint32_t r5;
+      uint32_t r6;
+      uint32_t r7;
+      uint32_t r8;
+      uint32_t r9;
+      uint32_t r10;
+      uint32_t r11;
+      uint32_t r12;
+      uint32_t sp;
+      uint32_t lr;
+      uint32_t pc;
+    };
 
-  /// Program counter
-  uint8_t PC;
+    int32_t r[0x10];
+  };
 
-  /// Negative flag
-  uint8_t N;
+  /// Arithmetic flags
+  union
+  {
+    struct
+    {
+      uint8_t n;
+      uint8_t z;
+      uint8_t c;
+      uint8_t v;
+    };
 
-  /// Zero flag
-  uint8_t Z;
+    /// Combined flags
+    uint32_t flags;
+  };
 
-  /// Carry flag
-  uint8_t C;
+  /// ITT state
+  uint8_t  itt;
 
-  /// Overflow flag
-  uint8_t V;
-
-  /// IRQ bit
-  uint8_t I;
-
-  /// FIQ bit
-  uint8_t F;
-
-  /// Thumb bit
-  uint8_t T;
+  /// Memory module
+  Memory *mem;
 };
+
+/**
+ * Starts executing ARM instructions. This function exists when
+ * an exception occurs or when the master thread signals it to quit
+ *
+ * @param emu Pointer to the emulator state
+ */
+void ARMExecute(ARMState *emu);
 
 
 #endif /*__ARM_H__*/

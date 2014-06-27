@@ -4,66 +4,19 @@
 #ifndef __THUMB_H__
 #define __THUMB_H__
 
-
 /**
- * THUMB state
+ * Forward declaration of the ARM state
  */
-struct THUMBState
-{
-  /// Registers
-  union
-  {
-    struct
-    {
-      uint32_t r0;
-      uint32_t r1;
-      uint32_t r2;
-      uint32_t r3;
-      uint32_t r4;
-      uint32_t r5;
-      uint32_t r6;
-      uint32_t r7;
-      uint32_t r8;
-      uint32_t r9;
-      uint32_t r10;
-      uint32_t r11;
-      uint32_t r12;
-      uint32_t sp;
-      uint32_t lr;
-      uint32_t pc;
-    };
-
-    int32_t r[0x10];
-  };
-
-  /// Arithmetic flags
-  union
-  {
-    struct
-    {
-      uint8_t n;
-      uint8_t z;
-      uint8_t c;
-      uint8_t v;
-    };
-
-    /// Combined flags
-    uint32_t flags;
-  };
-
-  /// ITT state
-  uint8_t  itt;
-
-  /// Memory module
-  Memory *mem;
-};
+struct ARMState;
 
 
 /**
- * Executes a thumb instruction
+ * Starts executing THUMB instructions. This function exists when
+ * an exception occurs or when the master thread signals it to quit
+ *
  * @param emu Pointer to the emulator state
  */
-void ThumbExecute(Emulator *emu);
+void ThumbExecute(ARMState *t);
 
 
 #endif /*__THUMB_H__*/
