@@ -14,7 +14,8 @@ Emulator::Emulator(const Args& args)
   // Initialise the ARM state
   memset(&armData, 0, sizeof(ARMData));
   armData.mem = &mem;
-  armData.pc = 8;
+  armData.state = ARM_STATE_ARM;
+  armData.pc = 0;
 }
 
 
@@ -27,6 +28,7 @@ Emulator::~Emulator()
 // -----------------------------------------------------------------------------
 void Emulator::Run()
 {
+  ARMExecute(&armData);
   ThumbExecute(&armData);
 }
 

@@ -38,7 +38,7 @@ public:
   /**
    * Returns a word from memory
    */
-  uint16_t GetInstrWord(uint32_t addr)
+  uint16_t ReadInstrWord(uint32_t addr)
   {
     return *((uint16_t*)(ram + addr));
   }
@@ -46,7 +46,7 @@ public:
   /**
    * Returns a long from memory
    */
-  uint32_t GetInstrLong(uint32_t addr)
+  uint32_t ReadInstrLong(uint32_t addr)
   {
     return *((uint32_t*)(ram + addr));
   }
@@ -54,9 +54,33 @@ public:
   /**
    * Returns a long from memory
    */
-  uint32_t GetLong(uint32_t addr)
+  uint32_t ReadLong(uint32_t addr)
   {
     return *((uint32_t*)(ram + addr));
+  }
+
+  /**
+   * Returns a long from memory
+   */
+  uint8_t ReadByte(uint32_t addr)
+  {
+    return ram[addr];
+  }
+
+  /**
+   * Writes a long to memory
+   */
+  void WriteLong(uint32_t addr, uint32_t val)
+  {
+    *((uint32_t*)(ram + addr)) = val;
+  }
+
+  /**
+   * Writes a byte to memory
+   */
+  void WriteByte(uint32_t addr, uint8_t val)
+  {
+    ram[addr] = val;
   }
 
 private:

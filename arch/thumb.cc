@@ -432,7 +432,7 @@ static inline void SUB(ARMData *t, int32_t &r, int32_t a, int32_t b)
 // -------------------------------------------------------------------------------------------------
 static inline void LDR(ARMData *t, int32_t &r, uint32_t addr)
 {
-  r = t->mem->GetLong(addr);
+  r = t->mem->ReadLong(addr);
 }
 
 
@@ -543,7 +543,7 @@ void ThumbExecute(ARMData *t)
     // counter. In order to account for the pipelining effect,
     // the program counter must be always greater by 4.
     t->pc += 2;
-    op = t->mem->GetInstrWord(t->pc - 4);
+    op = t->mem->ReadInstrWord(t->pc - 4);
 
 
     // Check for exceptions. Interrupts are usually handled in THUMB
@@ -606,7 +606,7 @@ void ThumbExecute(ARMData *t)
       case 0x70 ... 0x73: BAL  (t, op);                                                    continue;
       case 0x78 ... 0x7B: BLO  (t, op >> 9);                                               continue;
       case 0x7C ... 0x7F: BLH  (t, op >> 9);                                               continue;
-      case 0x50 ... 0x53: r[(op >> 8) & 3] = t->pc + ((op & 0xFF) << 2);                   continue;
+      case 0x50 ... 0x53: r[(op >> 8) & 3] = (t->pc & ~2) + ((op & 0xFF) << 2);            continue;
       case 0x54 ... 0x57: r[(op >> 8) & 3] = t->sp + ((op & 0xFF) << 2);                   continue;
       case 0x22 ... 0x23:
         switch ((op >> 6) & 0xF)

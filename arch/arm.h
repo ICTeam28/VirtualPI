@@ -20,6 +20,7 @@ enum ARMState
   ARM_STATE_JAZELLE
 };
 
+
 /**
  * ARM operating modes
  */
@@ -136,6 +137,9 @@ struct ARMData
 
   /// Exception pending
   ARMException exc;
+
+  /// ARM state
+  ARMState state;
 
   /// Memory module
   Memory *mem;
