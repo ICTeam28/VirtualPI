@@ -4,7 +4,7 @@
 
 entry:
   .code 32
-  ldr r6, =thumb
+  ldr r6, =(thumb + 1)
   bx  r6
 thumb:
   .code 16

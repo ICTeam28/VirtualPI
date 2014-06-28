@@ -258,9 +258,12 @@ void ARMExecute(ARMState *a)
       {
         if ((op & 0x0FFFFFF0) == 0x012FFF10)
         {
-          // BX
-          a->exc = ARM_EXC_TOTHUMB;
           a->pc = a->r[op & 0xF];
+          if (a->pc & 1)
+          {
+            a->pc &= ~1;
+            a->exc = ARM_EXC_TOTHUMB;
+          }
         }
         else
         {
