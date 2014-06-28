@@ -7,7 +7,7 @@
 /**
  * Forward declaration of the ARM state
  */
-struct ARMData;
+struct ARMState;
 
 
 /**
@@ -16,7 +16,7 @@ struct ARMData;
  *
  * @param emu Pointer to the emulator state
  */
-void ThumbExecute(ARMData *t);
+void ThumbExecute(ARMState *t);
 
 
 #endif /*__THUMB_H__*/

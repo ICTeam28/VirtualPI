@@ -13,7 +13,7 @@ thumb:
   sub     r0, #1
   bne     1b
 
-  mov     r0, #255
+  ldr     r0, =0x100000
   mov     r1, #0
 1:
   add     r1, #1

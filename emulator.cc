@@ -12,10 +12,10 @@ Emulator::Emulator(const Args& args)
   mem.LoadImage(args.image, 0);
 
   // Initialise the ARM state
-  memset(&armData, 0, sizeof(ARMData));
-  armData.mem = &mem;
-  armData.state = ARM_STATE_ARM;
-  armData.pc = 0;
+  memset(&armState, 0, sizeof(ARMState));
+  armState.mem = &mem;
+  armState.iset = ARM_IS_ARM;
+  armState.pc = 0;
 }
 
 
@@ -28,8 +28,14 @@ Emulator::~Emulator()
 // -----------------------------------------------------------------------------
 void Emulator::Run()
 {
-  ARMExecute(&armData);
-  ThumbExecute(&armData);
+  while (!armState.hang)
+  {
+    switch (armState.iset)
+    {
+      case ARM_IS_ARM:   ARMExecute(&armState); continue;
+      case ARM_IS_THUMB: ThumbExecute(&armState); continue;
+    }
+  }
 }
 
 
@@ -42,11 +48,11 @@ void Emulator::DumpState(std::ostream& os)
   {
     os << "$r" << i << ": "
        << std::setfill('0') << std::setw(8) << std::hex
-       << armData.r[i] << std::endl;
+       << armState.r[i] << std::endl;
   }
 
-  os << "N:" << (armData.n ? 1 : 0) << " "
-     << "Z:" << (armData.z ? 1 : 0) << " "
-     << "C:" << (armData.c ? 1 : 0) << " "
-     << "V:" << (armData.v ? 1 : 0) << std::endl;
+  os << "N:" << (armState.n ? 1 : 0) << " "
+     << "Z:" << (armState.z ? 1 : 0) << " "
+     << "C:" << (armState.c ? 1 : 0) << " "
+     << "V:" << (armState.v ? 1 : 0) << std::endl;
 }

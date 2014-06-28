@@ -71,7 +71,7 @@ private:
   Memory mem;
 
   /// ARM state
-  ARMData armData;
+  ARMState armState;
 
   /// Thumb
   friend void ThumbExecute(Emulator *emu);

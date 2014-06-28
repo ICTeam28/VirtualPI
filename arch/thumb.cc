@@ -7,69 +7,69 @@
 // -------------------------------------------------------------------------------------------------
 // Branch functions
 // -------------------------------------------------------------------------------------------------
-static void BCC(ARMData*, uint16_t) FORCEINLINE;
-static void BAL(ARMData*, uint16_t) FORCEINLINE;
-static void BLO(ARMData*, uint16_t) FORCEINLINE;
-static void BLH(ARMData*, uint16_t) FORCEINLINE;
+static void BCC(ARMState*, uint16_t) FORCEINLINE;
+static void BAL(ARMState*, uint16_t) FORCEINLINE;
+static void BLO(ARMState*, uint16_t) FORCEINLINE;
+static void BLH(ARMState*, uint16_t) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
 // 2 Operand ALU
 // -------------------------------------------------------------------------------------------------
-static void ADD(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void AND(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void EOR(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void LSL(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void LSR(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void ASR(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void ADC(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void SBC(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void ROR(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void TST(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void NEG(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void CMP(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void CMN(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void ORR(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void MUL(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void BIC(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void MVN(ARMData*, int32_t&, int32_t) FORCEINLINE;
-static void MOV(ARMData*, int32_t&, int32_t) FORCEINLINE;
+static void ADD(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void AND(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void EOR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void LSL(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void LSR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ASR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ADC(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void SBC(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ROR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void TST(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void NEG(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void CMP(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void CMN(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void ORR(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void MUL(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void BIC(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void MVN(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void MOV(ARMState*, int32_t&, int32_t) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
 // 3 Operand ALU
 // -------------------------------------------------------------------------------------------------
-static void LSL(ARMData*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void LSR(ARMData*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void ASR(ARMData*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void ADD(ARMData*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void SUB(ARMData*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void LSL(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void LSR(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void ASR(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void ADD(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
+static void SUB(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
 // Memory Load/Store
 // -------------------------------------------------------------------------------------------------
-static void LDR  (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void STR  (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRB (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSB (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void STRB (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRH (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSH (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void STRH (ARMData*, int32_t&, uint32_t) FORCEINLINE;
-static void STMIA(ARMData*, int32_t&, uint8_t)  FORCEINLINE;
-static void LDMIA(ARMData*, int32_t&, uint8_t)  FORCEINLINE;
+static void LDR  (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STR  (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STRB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDRH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void LDSH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STRH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
+static void STMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
+static void LDMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
 // Exceptions
 // -------------------------------------------------------------------------------------------------
-static inline void SWI(ARMData*) FORCEINLINE;
-static inline void UND(ARMData*) FORCEINLINE;
+static inline void SWI(ARMState*) FORCEINLINE;
+static inline void UND(ARMState*) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BCC(ARMData *t, uint16_t op)
+static inline void BCC(ARMState *t, uint16_t op)
 {
   int32_t off;
 
@@ -105,7 +105,7 @@ static inline void BCC(ARMData *t, uint16_t op)
 }
 
 // -------------------------------------------------------------------------------------------------
-static inline void BAL(ARMData *t, uint16_t op)
+static inline void BAL(ARMState *t, uint16_t op)
 {
   int32_t off;
 
@@ -119,21 +119,21 @@ static inline void BAL(ARMData *t, uint16_t op)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BLO(ARMData*, uint16_t)
+static inline void BLO(ARMState*, uint16_t)
 {
 
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BLH(ARMData*, uint16_t)
+static inline void BLH(ARMState*, uint16_t)
 {
 
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADD(ARMData *t, int32_t &r, int32_t a)
+static inline void ADD(ARMState *t, int32_t &r, int32_t a)
 {
   asm volatile
     ( "addl   %[A], %[R]       \n\t"
@@ -153,77 +153,77 @@ static inline void ADD(ARMData *t, int32_t &r, int32_t a)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void AND(ARMData *t, int32_t &d, int32_t s)
+static inline void AND(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void EOR(ARMData *t, int32_t &d, int32_t s)
+static inline void EOR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSL(ARMData *t, int32_t &d, int32_t s)
+static inline void LSL(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSR(ARMData *t, int32_t &d, int32_t s)
+static inline void LSR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ASR(ARMData *t, int32_t &d, int32_t s)
+static inline void ASR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADC(ARMData *t, int32_t &d, int32_t s)
+static inline void ADC(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void SBC(ARMData *t, int32_t &d, int32_t s)
+static inline void SBC(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ROR(ARMData *t, int32_t &d, int32_t s)
+static inline void ROR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void TST(ARMData *t, int32_t &d, int32_t s)
+static inline void TST(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void NEG(ARMData *t, int32_t &d, int32_t s)
+static inline void NEG(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void CMP(ARMData *t, int32_t &d, int32_t s)
+static inline void CMP(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[D], %%eax      \n\t"
@@ -244,7 +244,7 @@ static inline void CMP(ARMData *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void CMN(ARMData *t, int32_t &d, int32_t s)
+static inline void CMN(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[D], %%eax      \n\t"
@@ -265,28 +265,28 @@ static inline void CMN(ARMData *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ORR(ARMData *t, int32_t &d, int32_t s)
+static inline void ORR(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void MUL(ARMData *t, int32_t &d, int32_t s)
+static inline void MUL(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void BIC(ARMData *t, int32_t &d, int32_t s)
+static inline void BIC(ARMState *t, int32_t &d, int32_t s)
 {
   __builtin_trap();
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void MVN(ARMData *t, int32_t &d, int32_t s)
+static inline void MVN(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[S], %[D]       \n\t"
@@ -304,7 +304,7 @@ static inline void MVN(ARMData *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void MOV(ARMData *t, int32_t &d, int32_t s)
+static inline void MOV(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[S], %[D]       \n\t"
@@ -321,7 +321,7 @@ static inline void MOV(ARMData *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSL(ARMData *t, int32_t &r, int32_t a, int32_t b)
+static inline void LSL(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[A], %%eax      \n\t"
@@ -342,7 +342,7 @@ static inline void LSL(ARMData *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LSR(ARMData *t, int32_t &r, int32_t a, int32_t b)
+static inline void LSR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[A], %%eax      \n\t"
@@ -363,7 +363,7 @@ static inline void LSR(ARMData *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ASR(ARMData *t, int32_t &r, int32_t a, int32_t b)
+static inline void ASR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[A], %%eax      \n\t"
@@ -384,7 +384,7 @@ static inline void ASR(ARMData *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADD(ARMData *t, int32_t &r, int32_t a, int32_t b)
+static inline void ADD(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[B], %%eax      \n\t"
@@ -407,7 +407,7 @@ static inline void ADD(ARMData *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void SUB(ARMData *t, int32_t &r, int32_t a, int32_t b)
+static inline void SUB(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
     ( "movl   %[B], %%eax      \n\t"
@@ -430,103 +430,100 @@ static inline void SUB(ARMData *t, int32_t &r, int32_t a, int32_t b)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDR(ARMData *t, int32_t &r, uint32_t addr)
+static inline void LDR(ARMState *t, int32_t &r, uint32_t addr)
 {
   r = t->mem->ReadLong(addr);
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STR(ARMData*, int32_t&, uint32_t)
+static inline void STR(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STR" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDRB(ARMData*, int32_t&, uint32_t)
+static inline void LDRB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STRB(ARMData*, int32_t&, uint32_t)
+static inline void STRB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STRB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDRH(ARMData*, int32_t&, uint32_t)
+static inline void LDRH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STRH(ARMData*, int32_t&, uint32_t)
+static inline void STRH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STRH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDSB(ARMData*, int32_t&, uint32_t)
+static inline void LDSB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSB" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDSH(ARMData*, int32_t&, uint32_t)
+static inline void LDSH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSH" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void STMIA(ARMData*, int32_t&, uint8_t)
+static inline void STMIA(ARMState*, int32_t&, uint8_t)
 {
   std::cerr << "STMIA" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void LDMIA(ARMData*, int32_t&, uint8_t)
+static inline void LDMIA(ARMState*, int32_t&, uint8_t)
 {
   std::cerr << "LDMIA" << std::endl;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static void SWI(ARMData* t)
+static void SWI(ARMState* t)
 {
   t->exc = ARM_EXC_SWI;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static void UND(ARMData* t)
+static void UND(ARMState* t)
 {
   t->exc = ARM_EXC_UND;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-void ThumbExecute(ARMData *t)
+void ThumbExecute(ARMState *t)
 {
   register uint32_t flags;
   register uint16_t op;
   register int32_t *r;
   int32_t off;
 
-  // Cache some pointers
   r = t->r;
-
-  // Initial PC adjustment
+  t->exc = ARM_EXC_NONE;
   t->pc += 2;
-
   while (true)
   {
     // If instruction is in ITT block, it does not affect flags.
@@ -545,8 +542,7 @@ void ThumbExecute(ARMData *t)
     t->pc += 2;
     op = t->mem->ReadInstrWord(t->pc - 4);
 
-
-    // Check for exceptions. Interrupts are usually handled in THUMB
+    // Check for exceptions. Interrupts are usually handled in ARM
     // state, so we must exit the THUMB interpreter loop and return
     // to the ARM one to handle interrupts.
     switch (t->exc)
@@ -555,12 +551,20 @@ void ThumbExecute(ARMData *t)
       {
         break;
       }
+      case ARM_EXC_TOARM:
+      {
+        t->pc -= 2;
+        t->iset = ARM_IS_ARM;
+        t->exc = ARM_EXC_NONE;
+        break;
+      }
       case ARM_EXC_UND:
       {
         return;
       }
       case ARM_EXC_SWI:
       {
+        t->hang = 1;
         return;
       }
     }
@@ -682,6 +686,7 @@ void ThumbExecute(ARMData *t)
         }
       case 0x74 ... 0x77: /*THUMB2*/ __builtin_trap(); continue;
       case 0x6F: (*(((op >> 8) & 0x1) ? SWI : UND)) (t); continue;
+      default: /* LCOV_EXCL_START */ __builtin_unreachable();
     }
   }
 }

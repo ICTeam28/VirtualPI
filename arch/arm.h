@@ -13,11 +13,11 @@ class Memory;
 /**
  * ARM state
  */
-enum ARMState
+enum ARMInstrSet
 {
-  ARM_STATE_ARM,
-  ARM_STATE_THUMB,
-  ARM_STATE_JAZELLE
+  ARM_IS_ARM,
+  ARM_IS_THUMB,
+  ARM_IS_JAZELLE
 };
 
 
@@ -83,7 +83,7 @@ enum ARMException
 /**
  * ARM unit state
  */
-struct ARMData
+struct ARMState
 {
   /// Registers
   union
@@ -138,11 +138,14 @@ struct ARMData
   /// Exception pending
   ARMException exc;
 
-  /// ARM state
-  ARMState state;
+  /// ARM instruction set
+  ARMInstrSet iset;
 
   /// Memory module
   Memory *mem;
+
+  /// Hang flag
+  volatile bool hang;
 };
 
 
@@ -152,7 +155,7 @@ struct ARMData
  *
  * @param emu Pointer to the emulator state
  */
-void ARMExecute(ARMData *emu);
+void ARMExecute(ARMState *emu);
 
 
 #endif /*__ARM_H__*/
