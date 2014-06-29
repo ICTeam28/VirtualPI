@@ -68,8 +68,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
   # Set up gcov
   setup_target_for_coverage(
-    piemu_coverage
-    piemu_test
+    vpi_coverage
+    vpi_test
     coverage
     ${CMAKE_SOURCE_DIR}/tests
   )
