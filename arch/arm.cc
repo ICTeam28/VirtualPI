@@ -205,6 +205,13 @@ void ARMExecute(ARMState *a)
     a->pc += 4;
     op = a->mem->ReadInstrLong(a->pc - 8);
 
+    // Check whether we have switched to THUMB or JAZELLE
+    if (a->t || a->t)
+    {
+      a->pc -= 4;
+      return;
+    }
+
     // Check for exit conditions. Interrupts are handled in
     // this state, so in those cases we jump to the
     // corresponding handlers. However, if there was a request
@@ -212,13 +219,6 @@ void ARMExecute(ARMState *a)
     // switch to thumb
     switch (a->exc)
     {
-      case ARM_EXC_TOTHUMB:
-      {
-        a->pc -= 4;
-        a->iset = ARM_IS_THUMB;
-        a->exc = ARM_EXC_NONE;
-        return;
-      }
       case ARM_EXC_SWI:
       {
         return;
@@ -262,7 +262,8 @@ void ARMExecute(ARMState *a)
           if (a->pc & 1)
           {
             a->pc &= ~1;
-            a->exc = ARM_EXC_TOTHUMB;
+            a->j = 0;
+            a->t = 1;
           }
         }
         else

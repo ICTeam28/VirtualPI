@@ -542,6 +542,15 @@ void ThumbExecute(ARMState *t)
     t->pc += 2;
     op = t->mem->ReadInstrWord(t->pc - 4);
 
+    // Check whether we need to swith to THUMB or jazelle
+    // This meas that either J got set and we switch to Jazelle
+    // or T is no longer set and we switch to ARM
+    if (t->j || !t->t)
+    {
+      t->pc -= 2;
+      return;
+    }
+
     // Check for exceptions. Interrupts are usually handled in ARM
     // state, so we must exit the THUMB interpreter loop and return
     // to the ARM one to handle interrupts.
@@ -549,13 +558,6 @@ void ThumbExecute(ARMState *t)
     {
       case ARM_EXC_NONE:
       {
-        break;
-      }
-      case ARM_EXC_TOARM:
-      {
-        t->pc -= 2;
-        t->iset = ARM_IS_ARM;
-        t->exc = ARM_EXC_NONE;
         break;
       }
       case ARM_EXC_UND:

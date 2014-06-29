@@ -11,17 +11,6 @@ class Memory;
 
 
 /**
- * ARM state
- */
-enum ARMInstrSet
-{
-  ARM_IS_ARM,
-  ARM_IS_THUMB,
-  ARM_IS_JAZELLE
-};
-
-
-/**
  * ARM operating modes
  */
 enum ARMMode
@@ -42,41 +31,16 @@ enum ARMMode
  */
 enum ARMException
 {
-  /// No exception present
-  ARM_EXC_NONE,
-
-  /// Reset interrupt
-  ARM_EXC_RESET,
-
-  /// Undefined interrupt
-  ARM_EXC_UND,
-
-  /// Software interrupt
-  ARM_EXC_SWI,
-
-  /// System monitor
-  ARM_EXC_SMC,
-
-  /// Prefetch abort
-  ARM_EXC_PABT,
-
-  /// Data abort
-  ARM_EXC_DABT,
-
-  /// Interrupt request
-  ARM_EXC_IRQ,
-
-  /// Fast interrupt request
-  ARM_EXC_FIQ,
-
-  /// Software breakpoint
-  ARM_EXC_BKPT,
-
-  /// Switch to ARM
-  ARM_EXC_TOARM,
-
-  /// Switch to THUMB
-  ARM_EXC_TOTHUMB
+  ARM_EXC_NONE,     ///< No exception present
+  ARM_EXC_RESET,    ///< Reset interrupt
+  ARM_EXC_UND,      ///< Undefined interrupt
+  ARM_EXC_SWI,      ///< Software interrupt
+  ARM_EXC_SMC,      ///< System monitor
+  ARM_EXC_PABT,     ///< Prefetch abort
+  ARM_EXC_DABT,     ///< Data abort
+  ARM_EXC_IRQ,      ///< Interrupt request
+  ARM_EXC_FIQ,      ///< Fast interrupt request
+  ARM_EXC_BKPT,     ///< Software breakpoint
 };
 
 
@@ -111,41 +75,33 @@ struct ARMState
     int32_t r[0x10];
   };
 
-  /// Arithmetic flags
+  uint8_t       itt;   ///< ITT state
+  uint8_t       t;     ///< THUMB bit
+  uint8_t       f;     ///< FIQ enable
+  uint8_t       i;     ///< Interrupt enable
+  uint8_t       a;     ///< Imprecise abort
+  uint8_t       e;     ///< Data endiannes
+  uint8_t       ge;    ///< Greater than or equal to
+  uint8_t       j;     ///< Java bit
+  uint8_t       q;     ///< Stick overflow
   union
   {
     struct
     {
-      uint8_t n;
-      uint8_t z;
-      uint8_t c;
-      uint8_t v;
+      uint8_t n;       ///< Negative flag
+      uint8_t z;       ///< Zero flag
+      uint8_t c;       ///< Carry flag
+      uint8_t v;       ///< Overflow flag
     };
 
     /// Combined flags
     uint32_t flags;
   };
 
-  /// ITT state
-  uint8_t  itt;
-
-  /// Interrupt enable
-  uint8_t i;
-
-  /// FIQ enable
-  uint8_t f;
-
-  /// Exception pending
-  ARMException exc;
-
-  /// ARM instruction set
-  ARMInstrSet iset;
-
-  /// Memory module
-  Memory *mem;
-
-  /// Hang flag
-  volatile bool hang;
+  ARMMode       mode;  ///< Operating mode
+  ARMException  exc;   ///< Exception pending
+  Memory       *mem;   ///< Memory module
+  volatile bool hang;  ///< Hand flag
 };
 
 

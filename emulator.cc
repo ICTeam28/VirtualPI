@@ -14,7 +14,6 @@ Emulator::Emulator(const Args& args)
   // Initialise the ARM state
   memset(&armState, 0, sizeof(ARMState));
   armState.mem = &mem;
-  armState.iset = ARM_IS_ARM;
   armState.pc = 0;
 }
 
@@ -30,10 +29,20 @@ void Emulator::Run()
 {
   while (!armState.hang)
   {
-    switch (armState.iset)
+    if (armState.j)
     {
-      case ARM_IS_ARM:   ARMExecute(&armState); continue;
-      case ARM_IS_THUMB: ThumbExecute(&armState); continue;
+      EXCEPT << "Jazelle unimplemented";
+    }
+    else
+    {
+      if (armState.t)
+      {
+        ThumbExecute(&armState);
+      }
+      else
+      {
+        ARMExecute(&armState);
+      }
     }
   }
 }
