@@ -14,6 +14,7 @@ Emulator::Emulator(const Args& args)
   // Initialise the ARM state
   memset(&armState, 0, sizeof(ARMState));
   armState.mem = &mem;
+  armState.mode = ARM_MODE_SVC;
   armState.pc = 0;
 }
 

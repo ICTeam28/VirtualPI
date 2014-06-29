@@ -31,16 +31,16 @@ enum ARMMode
  */
 enum ARMException
 {
-  ARM_EXC_NONE,     ///< No exception present
-  ARM_EXC_RESET,    ///< Reset interrupt
-  ARM_EXC_UND,      ///< Undefined interrupt
-  ARM_EXC_SWI,      ///< Software interrupt
-  ARM_EXC_SMC,      ///< System monitor
-  ARM_EXC_PABT,     ///< Prefetch abort
-  ARM_EXC_DABT,     ///< Data abort
-  ARM_EXC_IRQ,      ///< Interrupt request
-  ARM_EXC_FIQ,      ///< Fast interrupt request
-  ARM_EXC_BKPT,     ///< Software breakpoint
+  ARM_EXC_NONE,           ///< No exception present
+  ARM_EXC_RESET,          ///< Reset interrupt
+  ARM_EXC_UND,            ///< Undefined interrupt
+  ARM_EXC_SWI,            ///< Software interrupt
+  ARM_EXC_SMC,            ///< System monitor
+  ARM_EXC_PABT,           ///< Prefetch abort
+  ARM_EXC_DABT,           ///< Data abort
+  ARM_EXC_IRQ,            ///< Interrupt request
+  ARM_EXC_FIQ,            ///< Fast interrupt request
+  ARM_EXC_BKPT,           ///< Software breakpoint
 };
 
 
@@ -49,59 +49,56 @@ enum ARMException
  */
 struct ARMState
 {
-  /// Registers
   union
   {
     struct
     {
-      uint32_t r0;
-      uint32_t r1;
-      uint32_t r2;
-      uint32_t r3;
-      uint32_t r4;
-      uint32_t r5;
-      uint32_t r6;
-      uint32_t r7;
-      uint32_t r8;
-      uint32_t r9;
-      uint32_t r10;
-      uint32_t r11;
-      uint32_t r12;
-      uint32_t sp;
-      uint32_t lr;
-      uint32_t pc;
+      int32_t   r0;
+      int32_t   r1;
+      int32_t   r2;
+      int32_t   r3;
+      int32_t   r4;
+      int32_t   r5;
+      int32_t   r6;
+      int32_t   r7;
+      int32_t   r8;
+      int32_t   r9;
+      int32_t   r10;
+      int32_t   r11;
+      int32_t   r12;
+      uint32_t  sp;       ///< Stack pointer
+      uint32_t  lr;       ///< Link register
+      uint32_t  pc;       ///< Program counter
     };
 
-    int32_t r[0x10];
+    int32_t     r[0x10];   ///< All registers
   };
 
-  uint8_t       itt;   ///< ITT state
-  uint8_t       t;     ///< THUMB bit
-  uint8_t       f;     ///< FIQ enable
-  uint8_t       i;     ///< Interrupt enable
-  uint8_t       a;     ///< Imprecise abort
-  uint8_t       e;     ///< Data endiannes
-  uint8_t       ge;    ///< Greater than or equal to
-  uint8_t       j;     ///< Java bit
-  uint8_t       q;     ///< Stick overflow
+  uint8_t       itt;       ///< ITT state
+  uint8_t       t;         ///< THUMB bit
+  uint8_t       f;         ///< FIQ enable
+  uint8_t       i;         ///< Interrupt enable
+  uint8_t       a;         ///< Imprecise abort
+  uint8_t       e;         ///< Data endiannes
+  uint8_t       ge;        ///< Greater than or equal to
+  uint8_t       j;         ///< Java bit
+  uint8_t       q;         ///< Stick overflow
   union
   {
     struct
     {
-      uint8_t n;       ///< Negative flag
-      uint8_t z;       ///< Zero flag
-      uint8_t c;       ///< Carry flag
-      uint8_t v;       ///< Overflow flag
+      uint8_t   n;        ///< Negative flag
+      uint8_t   z;        ///< Zero flag
+      uint8_t   c;        ///< Carry flag
+      uint8_t   v;        ///< Overflow flag
     };
-
-    /// Combined flags
-    uint32_t flags;
+    uint32_t    flags;    ///< Combined flags
   };
 
   ARMMode       mode;  ///< Operating mode
   ARMException  exc;   ///< Exception pending
   Memory       *mem;   ///< Memory module
-  volatile bool hang;  ///< Hand flag
+  volatile bool hang;  ///< Temporary exit flag
 };
 
 
