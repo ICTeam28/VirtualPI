@@ -66,9 +66,9 @@ struct ARMState
       int32_t   r10;
       int32_t   r11;
       int32_t   r12;
-      uint32_t  sp;       ///< Stack pointer
-      uint32_t  lr;       ///< Link register
-      uint32_t  pc;       ///< Program counter
+      uint32_t  sp;        ///< Stack pointer
+      uint32_t  lr;        ///< Link register
+      uint32_t  pc;        ///< Program counter
     };
 
     int32_t     r[0x10];   ///< All registers
@@ -95,10 +95,10 @@ struct ARMState
     uint32_t    flags;    ///< Combined flags
   };
 
-  ARMMode       mode;  ///< Operating mode
-  ARMException  exc;   ///< Exception pending
-  Memory       *mem;   ///< Memory module
-  volatile bool hang;  ///< Temporary exit flag
+  ARMMode       mode;     ///< Operating mode
+  ARMException  exc;      ///< Exception pending
+  Memory       *mem;      ///< Memory module
+  volatile bool hang;     ///< Temporary exit flag
 };
 
 

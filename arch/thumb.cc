@@ -18,13 +18,13 @@ static void SBC(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void ROR(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void TST(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void NEG(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void CMP(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void CMN(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void ORR(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void MUL(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void BIC(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void MVN(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void MOV(ARMState*, int32_t&, int32_t) FORCEINLINE;
+static void CMP(ARMState*, int32_t,  int32_t) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
@@ -150,14 +150,14 @@ static inline void NEG(ARMState *t, int32_t &d, int32_t s)
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void CMP(ARMState *t, int32_t &d, int32_t s)
+static inline void CMP(ARMState *t, int32_t d, int32_t s)
 {
   asm volatile
-    ( "movl   %[D], %%eax      \n\t"
-      "cmpl   %[S], %%eax      \n\t"
+    ( "movl   %[S], %%eax      \n\t"
+      "cmpl   %%eax, %[D]      \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
+      "setnc  %[C]             \n\t"
       "seto   %[V]             \n\t"
     : [N] "=m" (t->n)
     , [Z] "=m" (t->z)
@@ -194,6 +194,7 @@ static inline void CMN(ARMState *t, int32_t &d, int32_t s)
 // -------------------------------------------------------------------------------------------------
 static inline void ORR(ARMState *t, int32_t &d, int32_t s)
 {
+  std::cerr << "ORR2" << std::endl;
   __builtin_trap();
 }
 
@@ -208,7 +209,18 @@ static inline void MUL(ARMState *t, int32_t &d, int32_t s)
 // -------------------------------------------------------------------------------------------------
 static inline void BIC(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "movl   %[S], %%eax      \n\t"
+      "notl   %%eax            \n\t"
+      "andl   %%eax, %[D]      \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [D] "+g" (d)
+    : [S] "g"  (s)
+    : "memory", "cc", "eax"
+    );
 }
 
 
@@ -342,7 +354,7 @@ static inline void SUB(ARMState *t, int32_t &r, int32_t a, int32_t b)
       "movl   %%eax, %[R]      \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
+      "setnc  %[C]             \n\t"
       "seto   %[V]             \n\t"
     : [N] "=m" (t->n)
     , [Z] "=m" (t->z)
@@ -451,7 +463,7 @@ void ThumbExecute(ARMState *t)
   r = t->r;
   t->exc = ARM_EXC_NONE;
   t->pc += 2;
-  while (true)
+  while (!t->hang)
   {
     // If instruction is in ITT block, it does not affect flags.
     // In order to avoid affecting flags, we save the flags at
@@ -489,6 +501,7 @@ void ThumbExecute(ARMState *t)
       }
       case ARM_EXC_UND:
       {
+        t->hang = 1;
         return;
       }
       case ARM_EXC_SWI:
@@ -502,7 +515,9 @@ void ThumbExecute(ARMState *t)
     // Decode the instructions. The most significant 7 bits should
     // be enough to distinguish most instrucitions, but additional
     // switch statements are required for some categories such as
-    // ALU operations and miscellaneous instructions
+    // ALU operations and miscellaneous instructions. We try to
+    // keep the number of cases low (< 256) so compilers generate
+    // a jump table instead of binary search
     switch (op >> 9)
     {
       // LSL Rd, Rs, #Imm5
@@ -612,29 +627,28 @@ void ThumbExecute(ARMState *t)
       {
         switch ((op >> 6) & 0xF)
         {
-          case 0x0: UND(t); continue;
           case 0x1: ADD(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
           case 0x2: ADD(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
           case 0x3: ADD(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0x4: UND(t); continue;
           case 0x5: CMP(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
           case 0x6: CMP(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
           case 0x7: CMP(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0x8: UND(t); continue;
           case 0x9: MOV(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
           case 0xA: MOV(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
           case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0xC:
-          {
-            continue;
-          }
           case 0xD:
           {
             continue;
           }
-          case 0xE: UND(t);
-          case 0xF: UND(t);
-          default: /* LCOV_EXCL_LINE */ __builtin_unreachable(); continue;
+          case 0xC:
+          {
+            continue;
+          }
+          default:
+          {
+            UND(t);
+            continue;
+          }
         }
       }
 
@@ -776,19 +790,85 @@ void ThumbExecute(ARMState *t)
       {
         switch ((op >> 5) & 0x7F)
         {
-          case 0x00 ... 0x03: /*ADD SP, SP, #Imm7*/ continue;
-          case 0x04 ... 0x07: /*SUB SP, SP, #Imm7*/ continue;
-          case 0x10 ... 0x11: /*SXTH*/              continue;
-          case 0x12 ... 0x13: /*SXTB*/              continue;
-          case 0x14 ... 0x15: /*UXTH*/              continue;
-          case 0x16 ... 0x17: /*UXTB*/              continue;
-          case 0x20 ... 0x2F: /*PUSH*/              continue;
-          case 0x33:          /*CPS*/               continue;
-          case 0x50 ... 0x51: /*REV*/               continue;
-          case 0x52 ... 0x53: /*REV16*/             continue;
-          case 0x54 ... 0x55: /*REVSH*/             continue;
-          case 0x60 ... 0x6F: /*POP*/               continue;
-          case 0x70 ... 0x77: /*BKPT*/              continue;
+          // ADD SP, SP, #Imm7
+          case 0x00 ... 0x03:
+          {
+            continue;
+          }
+
+          // SUB SP, SP, #Imm7
+          case 0x04 ... 0x07:
+          {
+            continue;
+          }
+
+          // SXTH
+          case 0x10 ... 0x11:
+          {
+            continue;
+          }
+
+          // SXTB
+          case 0x12 ... 0x13:
+          {
+            continue;
+          }
+
+          // UXTH
+          case 0x14 ... 0x15:
+          {
+            continue;
+          }
+
+          // UXTB
+          case 0x16 ... 0x17:
+          {
+            continue;
+          }
+
+          // PUSH
+          case 0x20 ... 0x2F:
+          {
+            continue;
+          }
+
+          // CPS
+          case 0x33:
+          {
+            continue;
+          }
+
+          // REV
+          case 0x50 ... 0x51:
+          {
+            continue;
+          }
+
+          // REV16
+          case 0x52 ... 0x53:
+          {
+            continue;
+          }
+
+          // REVSH
+          case 0x54 ... 0x55:
+          {
+            continue;
+          }
+
+          // POP
+          case 0x60 ... 0x6F:
+          {
+            continue;
+          }
+
+          // BKPT
+          case 0x70 ... 0x77:
+          {
+            t->hang = 1;
+            continue;
+          }
+
           case 0x78 ... 0x7F:
           {
             if (op & 0xF)
@@ -799,14 +879,44 @@ void ThumbExecute(ARMState *t)
 
             switch ((op >> 4) & 0xF)
             {
-              case 0x0: /*NOP*/   continue;
-              case 0x1: /*YIELD*/ continue;
-              case 0x2: /*WFE*/   continue;
-              case 0x3: /*WFI*/   continue;
-              case 0x4: /*SEV*/   continue;
+              // NOP
+              case 0x0:
+              {
+                continue;
+              }
+
+              // YIELD
+              case 0x1:
+              {
+                continue;
+              }
+
+              // WFE
+              case 0x2:
+              {
+                continue;
+              }
+
+              // WFI
+              case 0x3:
+              {
+                continue;
+              }
+
+              // SEV
+              case 0x4:
+              {
+                continue;
+              }
             }
           }
-          default: UND(t); continue;
+
+          // UND
+          default:
+          {
+            UND(t);
+            continue;
+          }
         }
       }
 
@@ -863,7 +973,7 @@ void ThumbExecute(ARMState *t)
           off |= ~0x7FF;
         }
 
-        t->pc += off + 2;
+        t->pc += (off << 1) + 2;
         continue;
       }
 

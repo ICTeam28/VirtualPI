@@ -102,3 +102,4 @@ int main(int argc, char **argv)
   std::cout << "Result: " << testPass << "/" << testCount << std::endl;
   return EXIT_SUCCESS;
 }
+

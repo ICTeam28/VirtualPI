@@ -35,4 +35,4 @@ thumb:
   mov     r7, #1
 2:
 
-  swi     0x0
+  bkpt
