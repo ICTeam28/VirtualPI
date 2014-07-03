@@ -604,24 +604,23 @@ void ThumbExecute(ARMState *t)
   uint32_t temp;
 
   r = t->r;
-  t->exc = ARM_EXC_NONE;
-  t->pc += 2;
   while (!t->hang)
   {
-    // Read the instruction from memory and increment the program
-    // counter. In order to account for the pipelining effect,
-    // the program counter must be always greater by 4.
-    op = t->mem->ReadInstrWord(t->pc - 2);
-    t->pc += 2;
-
     // Check whether we need to swith to THUMB or jazelle
     // This meas that either J got set and we switch to Jazelle
     // or T is no longer set and we switch to ARM
     if (t->j || !t->t)
     {
-      t->pc -= 2;
       return;
     }
+
+
+    // Read the instruction from memory and increment the program
+    // counter. In order to account for the pipelining effect,
+    // the program counter must be always greater by 4.
+    op = t->mem->ReadInstrWord(t->pc);
+    t->pc += 4;
+
 
     // Check for exceptions. Interrupts are usually handled in ARM
     // state, so we must exit the THUMB interpreter loop and return
@@ -657,77 +656,77 @@ void ThumbExecute(ARMState *t)
       case 0x00 ... 0x03:
       {
         LSL(t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);
-        continue;
+        break;
       }
 
       // LSR Rd, Rs, #Imm5
       case 0x04 ... 0x07:
       {
         LSR(t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);
-        continue;
+        break;
       }
 
       // ASR Rd, Rs, #Imm5
       case 0x08 ... 0x0B:
       {
         ASR(t, r[op & 7], r[(op >> 3) & 7], (op >> 6) & 31);
-        continue;
+        break;
       }
 
       // ADD Rd, $s, Rn
       case 0x0C:
       {
         ADD(t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);
-        continue;
+        break;
       }
 
       // SUB Rd, Rs, Rn
       case 0x0D:
       {
         SUB(t, r[op & 7], r[(op >> 6) & 7], r[(op >> 3) & 7]);
-        continue;
+        break;
       }
 
       // ADD Rd, Rs, #Imm3
       case 0x0E:
       {
         ADD(t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);
-        continue;
+        break;
       }
 
       // SUB Rd, Rs, #Imm3
       case 0x0F:
       {
         SUB(t, r[op & 7], (op >> 6) & 7, r[(op >> 3) & 7]);
-        continue;
+        break;
       }
 
       // MOV Rd, #Imm8
       case 0x10 ... 0x13:
       {
         MOV(t, r[(op >> 8) & 7], op & 0xFF);
-        continue;
+        break;
       }
 
       // CMP Rd, #Imm8
       case 0x14 ... 0x17:
       {
         CMP(t, r[(op >> 8) & 7], op & 0xFF);
-        continue;
+        break;
       }
 
       // ADD Rd, #Imm8
       case 0x18 ... 0x1B:
       {
         ADD(t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);
-        continue;
+        break;
       }
 
       // SUB Rd, #Imm8
       case 0x1C ... 0x1F:
       {
         SUB(t, r[(op >> 8) & 7], op & 0xFF, r[(op >> 8) & 7]);
-        continue;
+        break;
       }
 
       // alu Rd, Rs
@@ -735,24 +734,26 @@ void ThumbExecute(ARMState *t)
       {
         switch ((op >> 6) & 0xF)
         {
-          case 0x0: AND(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x1: EOR(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x2: LSL(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x3: LSR(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x4: ASR(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x5: ADC(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x6: SBC(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x7: ROR(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x8: TST(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0x9: NEG(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0xA: CMP(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0xB: CMN(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0xC: ORR(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0xD: MUL(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0xE: BIC(t, r[op & 7], r[(op >> 3) & 7]); continue;
-          case 0xF: MVN(t, r[op & 7], r[(op >> 3) & 7]); continue;
+          case 0x0: AND(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x1: EOR(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x2: LSL(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x3: LSR(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x4: ASR(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x5: ADC(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x6: SBC(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x7: ROR(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x8: TST(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0x9: NEG(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0xA: CMP(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0xB: CMN(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0xC: ORR(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0xD: MUL(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0xE: BIC(t, r[op & 7], r[(op >> 3) & 7]); break;
+          case 0xF: MVN(t, r[op & 7], r[(op >> 3) & 7]); break;
           default: /* LCOV_EXCL_LINE */ __builtin_unreachable();
         }
+
+        break;
       }
 
       // alu Rd/Hd, Rs/Hs
@@ -760,164 +761,166 @@ void ThumbExecute(ARMState *t)
       {
         switch ((op >> 6) & 0xF)
         {
-          case 0x1: ADD(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0x2: ADD(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
-          case 0x3: ADD(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0x5: CMP(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0x6: CMP(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
-          case 0x7: CMP(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0x9: MOV(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
-          case 0xA: MOV(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); continue;
-          case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
+          case 0x1: ADD(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+          case 0x2: ADD(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
+          case 0x3: ADD(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+          case 0x5: CMP(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+          case 0x6: CMP(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
+          case 0x7: CMP(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+          case 0x9: MOV(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+          case 0xA: MOV(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
+          case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
           case 0xD:
           {
             std::cerr << "BX" << std::endl;
-            continue;
+            break;
           }
           case 0xC:
           {
             std::cerr << "BX" << std::endl;
-            continue;
+            break;
           }
           default:
           {
             UND(t);
-            continue;
+            break;
           }
         }
+
+        break;
       }
 
       // LDR  Rn, [PC + #Imm10]
       case 0x24 ... 0x27:
       {
         LDR(t, r[(op >> 8) & 7], (t->pc & ~2) + ((op & 0xFF) << 2));
-        continue;
+        break;
       }
 
       // STR Rd, [Rn + Ro]
       case 0x28:
       {
         STR(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // STRH Rd, [Rn + Ro]
       case 0x29:
       {
         STRH(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // STRB Rd, [Rn + Ro]
       case 0x2A:
       {
         STRB(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // LDRH Rd, [Rn + Ro]
       case 0x2B:
       {
         LDRH(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // LDR Rd, [Rn + Ro]
       case 0x2C:
       {
         LDR(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // LSDB Rd, [Rn + Ro]
       case 0x2D:
       {
         LDSB(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // LDRB  Rd, [Rn + Ro]
       case 0x2E:
       {
         LDRB(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // LDSH Rd, [Rn + Ro]
       case 0x2F:
       {
         LDSH(t, r[op & 7], r[(op >> 3) & 7] + r[(op >> 6) & 7]);
-        continue;
+        break;
       }
 
       // STR Rd, [Rn + #Imm7]
       case 0x30 ... 0x33:
       {
         STR(t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F));
-        continue;
+        break;
       }
 
       // LDR Rd, [Rn + #Imm7]
       case 0x34 ... 0x37:
       {
         LDR(t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 2) & 0x7F));
-        continue;
+        break;
       }
 
       // STRB Rd, [Rn + #Imm5]
       case 0x38 ... 0x3B:
       {
         STRB(t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));
-        continue;
+        break;
       }
 
       // LDRB Rd, [Rn + #Imm5]
       case 0x3C ... 0x3F:
       {
         LDRB (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6) & 0x1F));
-        continue;
+        break;
       }
 
       // STRH Rd, [Rn + #Imm6]
       case 0x40 ... 0x43:
       {
         STRH (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F));
-        continue;
+        break;
       }
 
       // LDRH Rd, [Rn + #Imm6]
       case 0x44 ... 0x47:
       {
         LDRH (t, r[op & 7], r[(op >> 3) & 7] + ((op >> 6 << 1) & 0x3F));
-        continue;
+        break;
       }
 
       // STR Rd, [SP + #Imm10]
       case 0x48 ... 0x4B:
       {
         STR(t, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));
-        continue;
+        break;
       }
 
       // LDR Rd, [SP + #Imm10]
       case 0x4C ... 0x4F:
       {
         LDR(t, r[(op >> 8) & 7], t->sp + ((op & 0xFF) << 2));
-        continue;
+        break;
       }
 
       // Add Rd, Pc, #Imm10
       case 0x50 ... 0x53:
       {
         r[(op >> 8) & 3] = (t->pc & ~2) + ((op & 0xFF) << 2);
-        continue;
+        break;
       }
 
       // Add Rd, Sp, #Imm10
       case 0x54 ... 0x57:
       {
         r[(op >> 8) & 3] = t->sp + ((op & 0xFF) << 2);
-        continue;
+        break;
       }
 
       // Miscellaneous
@@ -929,42 +932,42 @@ void ThumbExecute(ARMState *t)
           case 0x00 ... 0x03:
           {
             t->sp += (op & 0x7F) << 2;
-            continue;
+            break;
           }
 
           // SUB SP, SP, #Imm9
           case 0x04 ... 0x07:
           {
             t->sp -= (op & 0x7F) << 2;
-            continue;
+            break;
           }
 
           // SXTH
           case 0x10 ... 0x11:
           {
             t->r[op & 7] = (int32_t)((int16_t)t->r[(op >> 3) & 7]);
-            continue;
+            break;
           }
 
           // SXTB
           case 0x12 ... 0x13:
           {
             t->r[op & 7] = (int32_t)((int8_t)t->r[(op >> 3) & 7]);
-            continue;
+            break;
           }
 
           // UXTH
           case 0x14 ... 0x15:
           {
             t->r[op & 7] = (uint32_t)((uint16_t)t->r[(op >> 3) & 7]);
-            continue;
+            break;
           }
 
           // UXTB
           case 0x16 ... 0x17:
           {
             t->r[op & 7] = (uint32_t)((uint8_t)t->r[(op >> 3) & 7]);
-            continue;
+            break;
           }
 
           // PUSH
@@ -972,7 +975,7 @@ void ThumbExecute(ARMState *t)
           {
             std::cerr << "PUSH" << std::endl;
             __builtin_trap();
-            continue;
+            break;
           }
 
           // CPS
@@ -980,14 +983,14 @@ void ThumbExecute(ARMState *t)
           {
             std::cerr << "CPS" << std::endl;
             __builtin_trap();
-            continue;
+            break;
           }
 
           // REV
           case 0x50 ... 0x51:
           {
             t->r[op & 7] = BSWAP_32(t->r[(op >> 3) & 7]);
-            continue;
+            break;
           }
 
           // REV16
@@ -998,14 +1001,14 @@ void ThumbExecute(ARMState *t)
                            (((temp >> 16) & 0xFF) << 24) |
                            (((temp >>  8) & 0xFF) <<  0) |
                            (((temp >>  0) & 0xFF) <<  8);
-            continue;
+            break;
           }
 
           // REVSH
           case 0x56 ... 0x57:
           {
             t->r[op & 7] = (int32_t)((int16_t)BSWAP_16(t->r[(op >> 3) & 7]));
-            continue;
+            break;
           }
 
           // POP
@@ -1013,14 +1016,14 @@ void ThumbExecute(ARMState *t)
           {
             std::cerr << "POP" << std::endl;
             __builtin_trap();
-            continue;
+            break;
           }
 
           // BKPT
           case 0x70 ... 0x77:
           {
             t->hang = 1;
-            continue;
+            break;
           }
 
           case 0x78 ... 0x7F:
@@ -1030,7 +1033,7 @@ void ThumbExecute(ARMState *t)
               // IT
               std::cerr << "IT" << std::endl;
               __builtin_trap();
-              continue;
+              break;
             }
 
             switch ((op >> 4) & 0xF)
@@ -1040,7 +1043,7 @@ void ThumbExecute(ARMState *t)
               {
                 std::cerr << "NOP" << std::endl;
                 __builtin_trap();
-                continue;
+                break;
               }
 
               // YIELD
@@ -1048,7 +1051,7 @@ void ThumbExecute(ARMState *t)
               {
                 std::cerr << "YIELD" << std::endl;
                 __builtin_trap();
-                continue;
+                break;
               }
 
               // WFE
@@ -1056,7 +1059,7 @@ void ThumbExecute(ARMState *t)
               {
                 std::cerr << "WFE" << std::endl;
                 __builtin_trap();
-                continue;
+                break;
               }
 
               // WFI
@@ -1064,7 +1067,7 @@ void ThumbExecute(ARMState *t)
               {
                 std::cerr << "WFI" << std::endl;
                 __builtin_trap();
-                continue;
+                break;
               }
 
               // SEV
@@ -1072,7 +1075,7 @@ void ThumbExecute(ARMState *t)
               {
                 std::cerr << "SEV" << std::endl;
                 __builtin_trap();
-                continue;
+                break;
               }
             }
           }
@@ -1081,23 +1084,25 @@ void ThumbExecute(ARMState *t)
           default:
           {
             UND(t);
-            continue;
+            break;
           }
         }
+
+        break;
       }
 
       // STMIA Rn!, { Rlist }
       case 0x60 ... 0x63:
       {
         STMIA(t, r[(op >> 8) & 7], op & 0xFF);
-        continue;
+        break;
       }
 
       // LDMIA Rn!, { Rlist }
       case 0x64 ... 0x67:
       {
         LDMIA(t, r[(op >> 8) & 7], op & 0xFF);
-        continue;
+        break;
       }
 
       // Bcc label
@@ -1108,27 +1113,34 @@ void ThumbExecute(ARMState *t)
         {
           off |= ~0xFF;
         }
-        off = (off << 1) + 2;
+        off <<= 1;
 
         // Check condition
         switch ((op >> 8) & 0xF)
         {
-          case 0x0: t->pc += (t->z)                  ? off : 0; continue;
-          case 0x1: t->pc += (!t->z)                 ? off : 0; continue;
-          case 0x2: t->pc += (t->c)                  ? off : 0; continue;
-          case 0x3: t->pc += (!t->c)                 ? off : 0; continue;
-          case 0x4: t->pc += (t->n)                  ? off : 0; continue;
-          case 0x5: t->pc += (!t->n)                 ? off : 0; continue;
-          case 0x6: t->pc += (t->v)                  ? off : 0; continue;
-          case 0x7: t->pc += (!t->v)                 ? off : 0; continue;
-          case 0x8: t->pc += (t->c && !t->z)         ? off : 0; continue;
-          case 0x9: t->pc += (!t->c || t->z)         ? off : 0; continue;
-          case 0xA: t->pc += (t->n == t->v)          ? off : 0; continue;
-          case 0xB: t->pc += (t->n != t->v)          ? off : 0; continue;
-          case 0xC: t->pc += (!t->z && t->n == t->v) ? off : 0; continue;
-          case 0xD: t->pc += (t->z || t->n != t->v)  ? off : 0; continue;
-          default: /* LCOV_EXCL_LINE */ __builtin_unreachable();
+          case 0x0: temp = t->z;                  break;
+          case 0x1: temp = !t->z;                 break;
+          case 0x2: temp = t->c;                  break;
+          case 0x3: temp = !t->c;                 break;
+          case 0x4: temp = t->n;                  break;
+          case 0x5: temp = !t->n;                 break;
+          case 0x6: temp = t->v;                  break;
+          case 0x7: temp = !t->v;                 break;
+          case 0x8: temp = t->c && !t->z;         break;
+          case 0x9: temp = !t->c || t->z;         break;
+          case 0xA: temp = t->n == t->v;          break;
+          case 0xB: temp = t->n != t->v;          break;
+          case 0xC: temp = !t->z && t->n == t->v; break;
+          case 0xD: temp = t->z || t->n != t->v;  break;
+          default:
+          {
+            /* LCOV_EXCL_LINE */ __builtin_unreachable();
+          }
         }
+
+        // Adjust PC
+        t->pc += temp ? off : (-2);
+        continue;
       }
 
       // B label
@@ -1139,7 +1151,7 @@ void ThumbExecute(ARMState *t)
           off |= ~0x7FF;
         }
 
-        t->pc += (off << 1) + 2;
+        t->pc += off << 1;
         continue;
       }
 
@@ -1147,7 +1159,7 @@ void ThumbExecute(ARMState *t)
       case 0x74 ... 0x77:
       {
         __builtin_trap();
-        continue;
+        break;
       }
 
       // BL label
@@ -1155,26 +1167,30 @@ void ThumbExecute(ARMState *t)
       {
         std::cerr << (op & 0x7FF) << std::endl;
         t->lr = t->pc + ((op & 0x7FF) << 2);
-        continue;
+        break;
       }
 
       // BL label
       case 0x7C ... 0x7F:
       {
         std::cerr << (op & 0x7FF) << std::endl;
-        temp = t->pc - 2;
         __builtin_trap();
-        continue;
+        break;
       }
 
       // SWI | UND
       case 0x6F:
       {
         (*(((op >> 8) & 0x1) ? SWI : UND)) (t);
-        continue;
+        break;
       }
 
       default: /* LCOV_EXCL_LINE */ __builtin_unreachable();
     }
+
+    // By subtracting two here and adding 4 on the next
+    // iteration, we keep PC correctly adjusted and
+    // still fetch the correct instruction
+    t->pc -= 2;
   }
 }
