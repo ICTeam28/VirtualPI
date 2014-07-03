@@ -83,17 +83,10 @@ struct ARMState
   uint8_t       ge;        ///< Greater than or equal to
   uint8_t       j;         ///< Java bit
   uint8_t       q;         ///< Stick overflow
-  union
-  {
-    struct
-    {
-      uint8_t   n;        ///< Negative flag
-      uint8_t   z;        ///< Zero flag
-      uint8_t   c;        ///< Carry flag
-      uint8_t   v;        ///< Overflow flag
-    };
-    uint32_t    flags;    ///< Combined flags
-  };
+  uint8_t       n;        ///< Negative flag
+  uint8_t       z;        ///< Zero flag
+  uint8_t       c;        ///< Carry flag
+  uint8_t       v;        ///< Overflow flag
 
   ARMMode       mode;     ///< Operating mode
   ARMException  exc;      ///< Exception pending

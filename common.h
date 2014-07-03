@@ -28,7 +28,13 @@
 
 
 // Compiler specific macros
-#define FORCEINLINE __attribute__((always_inline))
+#if defined(__GNUC__)
+# define FORCEINLINE    __attribute__((always_inline))
+# define BSWAP_16(x)    __builtin_bswap16(x)
+# define BSWAP_32(x)    __builtin_bswap32(x)
+#else
+# error "Unsupported compiler"
+#endif
 
 
 // Emulator includes

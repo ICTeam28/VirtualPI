@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# AS flags
+ASFLAGS="-march=armv6j -mcpu=arm1176jz-s"
+
 # Displays command line options
 function usage() {
   echo "build-tests.sh source_file"
@@ -22,7 +25,7 @@ function choose_assembler() {
 # Compiles a source file
 function assemble() {
   binary=${1%%.*}
-  $AS $1 -o/tmp/${1##*/}.o
+  $AS $ASFLAGS $1 -o/tmp/${1##*/}.o
   $OC -O binary /tmp/${1##*/}.o $binary.o
 }
 
