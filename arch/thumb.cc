@@ -512,6 +512,7 @@ static inline void LDR(ARMState *t, int32_t &r, uint32_t addr)
 static inline void STR(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STR" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -519,6 +520,7 @@ static inline void STR(ARMState*, int32_t&, uint32_t)
 static inline void LDRB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRB" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -526,6 +528,7 @@ static inline void LDRB(ARMState*, int32_t&, uint32_t)
 static inline void STRB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STRB" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -533,6 +536,7 @@ static inline void STRB(ARMState*, int32_t&, uint32_t)
 static inline void LDRH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDRH" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -540,6 +544,7 @@ static inline void LDRH(ARMState*, int32_t&, uint32_t)
 static inline void STRH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "STRH" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -547,6 +552,7 @@ static inline void STRH(ARMState*, int32_t&, uint32_t)
 static inline void LDSB(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSB" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -554,6 +560,7 @@ static inline void LDSB(ARMState*, int32_t&, uint32_t)
 static inline void LDSH(ARMState*, int32_t&, uint32_t)
 {
   std::cerr << "LDSH" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -561,6 +568,7 @@ static inline void LDSH(ARMState*, int32_t&, uint32_t)
 static inline void STMIA(ARMState*, int32_t&, uint8_t)
 {
   std::cerr << "STMIA" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -568,6 +576,7 @@ static inline void STMIA(ARMState*, int32_t&, uint8_t)
 static inline void LDMIA(ARMState*, int32_t&, uint8_t)
 {
   std::cerr << "LDMIA" << std::endl;
+  __builtin_trap();
 }
 
 
@@ -940,60 +949,80 @@ void ThumbExecute(ARMState *t)
           // SXTH
           case 0x10 ... 0x11:
           {
+            std::cerr << "SXTH" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // SXTB
           case 0x12 ... 0x13:
           {
+            std::cerr << "SXTB" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // UXTH
           case 0x14 ... 0x15:
           {
+            std::cerr << "UXTH" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // UXTB
           case 0x16 ... 0x17:
           {
+            std::cerr << "UXTB" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // PUSH
           case 0x20 ... 0x2F:
           {
+            std::cerr << "PUSH" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // CPS
           case 0x33:
           {
+            std::cerr << "CPS" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // REV
           case 0x50 ... 0x51:
           {
+            std::cerr << "REV" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // REV16
           case 0x52 ... 0x53:
           {
+            std::cerr << "REV16" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // REVSH
           case 0x54 ... 0x55:
           {
+            std::cerr << "REVSH" << std::endl;
+            __builtin_trap();
             continue;
           }
 
           // POP
           case 0x60 ... 0x6F:
           {
+            std::cerr << "POP" << std::endl;
+            __builtin_trap();
             continue;
           }
 
@@ -1009,6 +1038,8 @@ void ThumbExecute(ARMState *t)
             if (op & 0xF)
             {
               // IT
+              std::cerr << "IT" << std::endl;
+              __builtin_trap();
               continue;
             }
 
@@ -1017,30 +1048,40 @@ void ThumbExecute(ARMState *t)
               // NOP
               case 0x0:
               {
+                std::cerr << "NOP" << std::endl;
+                __builtin_trap();
                 continue;
               }
 
               // YIELD
               case 0x1:
               {
+                std::cerr << "YIELD" << std::endl;
+                __builtin_trap();
                 continue;
               }
 
               // WFE
               case 0x2:
               {
+                std::cerr << "WFE" << std::endl;
+                __builtin_trap();
                 continue;
               }
 
               // WFI
               case 0x3:
               {
+                std::cerr << "WFI" << std::endl;
+                __builtin_trap();
                 continue;
               }
 
               // SEV
               case 0x4:
               {
+                std::cerr << "SEV" << std::endl;
+                __builtin_trap();
                 continue;
               }
             }
@@ -1122,12 +1163,14 @@ void ThumbExecute(ARMState *t)
       // BL label
       case 0x78 ... 0x7B:
       {
+        __builtin_trap();
         continue;
       }
 
       // BL label
       case 0x7C ... 0x7F:
       {
+        __builtin_trap();
         continue;
       }
 
