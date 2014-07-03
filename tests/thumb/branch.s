@@ -159,6 +159,28 @@ thumb:
 2:
   lsl   r6, #1
 
+  @ Jump on gt/le
+  cmp   r1, r2
+  bgt   9f
+  ble   1f
+  orr   r7, r6
+  b     2f
+1:
+  bic   r5, r6
+2:
+  lsl   r6, #1
+
+  @ Jump on lt/ge
+  cmp   r2, r1
+  ble   9f
+  bgt   1f
+  orr   r7, r6
+  b     2f
+1:
+  bic   r5, r6
+2:
+  lsl   r6, #1
+
   @ Branch back
   mov   r2, #0
 1:
