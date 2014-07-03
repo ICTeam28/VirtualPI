@@ -996,24 +996,25 @@ void ThumbExecute(ARMState *t)
           // REV
           case 0x50 ... 0x51:
           {
-            std::cerr << "REV" << std::endl;
-            __builtin_trap();
+            t->r[op & 7] = __builtin_bswap32(t->r[(op >> 3) & 7]);
             continue;
           }
 
           // REV16
           case 0x52 ... 0x53:
           {
-            std::cerr << "REV16" << std::endl;
-            __builtin_trap();
+            temp = t->r[(op >> 3) & 7];
+            t->r[op & 7] = (((temp >> 24) & 0xFF) << 16) |
+                           (((temp >> 16) & 0xFF) << 24) |
+                           (((temp >>  8) & 0xFF) <<  0) |
+                           (((temp >>  0) & 0xFF) <<  8);
             continue;
           }
 
           // REVSH
-          case 0x54 ... 0x55:
+          case 0x56 ... 0x57:
           {
-            std::cerr << "REVSH" << std::endl;
-            __builtin_trap();
+            t->r[op & 7] = (int32_t)((int16_t)__builtin_bswap16((int16_t)t->r[(op >> 3) & 7]));
             continue;
           }
 

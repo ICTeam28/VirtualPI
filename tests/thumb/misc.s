@@ -30,7 +30,7 @@ thumb:
   @ Test #2
   mov   r7, #2
 
-  ldr   r0, =0x80
+  ldr   r0, =0x0080
   sxtb  r1, r0
   ldr   r2, =0xFFFFFF80
   cmp   r1, r2
@@ -39,7 +39,7 @@ thumb:
   @ Test #3
   mov   r7, #3
 
-  ldr   r0, =0x80
+  ldr   r0, =0x0080
   uxtb  r1, r0
   ldr   r2, =0x00000080
   cmp   r1, r2
@@ -66,7 +66,7 @@ thumb:
   @ Test #6
   mov   r7, #6
 
-  ldr   r0, =0x40
+  ldr   r0, =0x0040
   sxtb  r1, r0
   ldr   r2, =0x00000040
   cmp   r1, r2
@@ -75,10 +75,36 @@ thumb:
   @ Test #7
   mov   r7, #7
 
-  ldr   r0, =0x40
+  ldr   r0, =0x0040
   uxtb  r1, r0
   ldr   r2, =0x00000040
   cmp   r1, r2
+  bne   9f
+
+  @ Test #8
+  mov   r7, #8
+
+  ldr   r0, =0x12345678
+  rev   r0, r0
+  ldr   r1, =0x78563412
+  cmp   r0, r1
+  bne   9f
+
+  @ Text #9
+  mov   r7, #9
+
+  ldr   r0, =0x12345678
+  rev16 r0, r0
+  ldr   r1, =0x34127856
+  cmp   r0, r1
+  bne   9f
+
+  @ Text #10
+  mov   r7, #10
+  ldr   r0, =0x0080
+  revsh r0, r0
+  ldr   r1, =0xFFFF8000
+  cmp   r0, r1
   bne   9f
 
   add   r7, #1
