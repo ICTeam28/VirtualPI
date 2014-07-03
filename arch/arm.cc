@@ -212,8 +212,8 @@ void ARMExecute(ARMState *a)
       return;
     }
 
-    // Check for exit conditions. Interrupts are handled in
-    // this state, so in those cases we jump to the
+    // Check for exceptional conditions. Interrupts are handled
+    // in this state, so in those cases we jump to the
     // corresponding handlers. However, if there was a request
     // to switch to thumb code, we must exit the ARM state and
     // switch to thumb

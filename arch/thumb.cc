@@ -24,7 +24,7 @@ static void MUL(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void BIC(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void MVN(ARMState*, int32_t&, int32_t) FORCEINLINE;
 static void MOV(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void CMP(ARMState*, int32_t,  int32_t) FORCEINLINE;
+static void CMP(ARMState*, int32_t&, int32_t) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
@@ -60,10 +60,10 @@ static inline void UND(ARMState*) FORCEINLINE;
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void ADD(ARMState *t, int32_t &r, int32_t a)
+static inline void ADD(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
-    ( "addl   %[A], %[R]       \n\t"
+    ( "addl   %[S], %[D]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
@@ -72,8 +72,8 @@ static inline void ADD(ARMState *t, int32_t &r, int32_t a)
     , [Z] "=m" (t->z)
     , [C] "=m" (t->c)
     , [V] "=m" (t->v)
-    , [R] "=r" (r)
-    : [A] "g"  (a)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
     : "memory", "cc"
     );
 }
@@ -82,55 +82,148 @@ static inline void ADD(ARMState *t, int32_t &r, int32_t a)
 // -------------------------------------------------------------------------------------------------
 static inline void AND(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "andl   %[S], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void EOR(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "xorl   %[S], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void LSL(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "shll   %%cl, %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [D] "+g" (d)
+    : [S] "c"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void LSR(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "shrl   %%cl, %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [D] "+g" (d)
+    : [S] "c"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void ASR(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "sarl   %%cl, %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [D] "+g" (d)
+    : [S] "c"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void ADC(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "movb   %[C], %%al       \n\t"
+      "addb   $0xFF, %[C]      \n\t"
+      "adcl   %[S], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "+g" (t->c)
+    , [V] "=g" (t->v)
+    , [D] "+g" (d)
+    : [S] "r"  (s)
+    : "memory", "cc", "al"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void SBC(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "movb   %[C], %%al       \n\t"
+      "subb   $0x01, %%al      \n\t"
+      "sbbl   %[S], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setnc  %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "+g" (t->c)
+    , [V] "=g" (t->v)
+    , [D] "+g" (d)
+    : [S] "r"  (s)
+    : "memory", "cc", "al"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void ROR(ARMState *t, int32_t &d, int32_t s)
 {
+  asm volatile
+    ( "rorl   %%cl, %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [D] "+r" (d)
+    : [S] "c"  (s)
+    : "memory", "cc"
+    );
   __builtin_trap();
 }
 
@@ -138,19 +231,42 @@ static inline void ROR(ARMState *t, int32_t &d, int32_t s)
 // -------------------------------------------------------------------------------------------------
 static inline void TST(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "testl  %[S], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void NEG(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "movl   %[S], %[D]       \n\t"
+      "negl   %[D]             \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [V] "=g" (t->v)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
+    : "memory", "cc", "eax"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
-static inline void CMP(ARMState *t, int32_t d, int32_t s)
+static inline void CMP(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "movl   %[S], %%eax      \n\t"
@@ -159,10 +275,10 @@ static inline void CMP(ARMState *t, int32_t d, int32_t s)
       "setz   %[Z]             \n\t"
       "setnc  %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [C] "=m" (t->c)
-    , [V] "=m" (t->v)
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [V] "=g" (t->v)
     : [D] "g"  (d)
     , [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -180,10 +296,10 @@ static inline void CMN(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
-    , [C] "=m" (t->c)
-    , [V] "=m" (t->v)
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
+    , [C] "=g" (t->c)
+    , [V] "=g" (t->v)
     : [D] "g"  (d)
     , [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -194,15 +310,33 @@ static inline void CMN(ARMState *t, int32_t &d, int32_t s)
 // -------------------------------------------------------------------------------------------------
 static inline void ORR(ARMState *t, int32_t &d, int32_t s)
 {
-  std::cerr << "ORR2" << std::endl;
-  __builtin_trap();
+  asm volatile
+    ( "orl    %[S], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
+    : "memory", "cc"
+    );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 static inline void MUL(ARMState *t, int32_t &d, int32_t s)
 {
-  __builtin_trap();
+  asm volatile
+    ( "imul   %[S], %[D]       \n\t"
+      "testl  %[D], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [D] "+r" (d)
+    : [S] "g"  (s)
+    : "memory", "cc"
+    );
 }
 
 
@@ -215,8 +349,8 @@ static inline void BIC(ARMState *t, int32_t &d, int32_t s)
       "andl   %%eax, %[D]      \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-    : [N] "=m" (t->n)
-    , [Z] "=m" (t->z)
+    : [N] "=g" (t->n)
+    , [Z] "=g" (t->z)
     , [D] "+g" (d)
     : [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -790,15 +924,17 @@ void ThumbExecute(ARMState *t)
       {
         switch ((op >> 5) & 0x7F)
         {
-          // ADD SP, SP, #Imm7
+          // ADD SP, SP, #Imm9
           case 0x00 ... 0x03:
           {
+            t->sp += (op & 0x7F) << 2;
             continue;
           }
 
-          // SUB SP, SP, #Imm7
+          // SUB SP, SP, #Imm9
           case 0x04 ... 0x07:
           {
+            t->sp -= (op & 0x7F) << 2;
             continue;
           }
 
