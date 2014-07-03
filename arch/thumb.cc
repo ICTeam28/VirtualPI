@@ -214,9 +214,10 @@ static inline void ROR(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "rorl   %%cl, %[D]       \n\t"
+      "setc   %[C]             \n\t"
+      "testl  %[D], %[D]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-      "setc   %[C]             \n\t"
     : [N] "=g" (t->n)
     , [Z] "=g" (t->z)
     , [C] "=g" (t->c)
@@ -224,7 +225,6 @@ static inline void ROR(ARMState *t, int32_t &d, int32_t s)
     : [S] "c"  (s)
     : "memory", "cc"
     );
-  __builtin_trap();
 }
 
 
@@ -328,7 +328,6 @@ static inline void MUL(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
     ( "imul   %[S], %[D]       \n\t"
-      "testl  %[D], %[D]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
     : [N] "=m" (t->n)
