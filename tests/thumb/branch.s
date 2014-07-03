@@ -159,6 +159,15 @@ thumb:
 2:
   lsl   r6, #1
 
+  @ Branch back
+  mov   r2, #0
+1:
+  add   r2, #1
+  cmp   r2, #2
+  beq   2f
+  b     1b
+2:
+
   mov   r4, #2
   b     8f
 9:
