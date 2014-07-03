@@ -1,10 +1,10 @@
 THUMB State:
 $r0: 00000009
-$r1: fffffff4
-$r2: fffffffa
-$r3: fffffff4
-$r4: 00000001
-$r5: 00000000
+$r1: 80000000
+$r2: ffffffff
+$r3: 00000000
+$r4: 00000003
+$r5: ffffffff
 $r6: 00000000
-$r7: ffffffff
-N:0 Z:1 C:1 V:0
+$r7: 00000016
+N:0 Z:0 C:0 V:0
