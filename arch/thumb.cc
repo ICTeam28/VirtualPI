@@ -601,6 +601,7 @@ void ThumbExecute(ARMState *t)
   register uint16_t op;
   register int32_t *r;
   int32_t off;
+  uint32_t temp;
 
   r = t->r;
   t->exc = ARM_EXC_NONE;
@@ -620,8 +621,8 @@ void ThumbExecute(ARMState *t)
     // Read the instruction from memory and increment the program
     // counter. In order to account for the pipelining effect,
     // the program counter must be always greater by 4.
+    op = t->mem->ReadInstrWord(t->pc - 2);
     t->pc += 2;
-    op = t->mem->ReadInstrWord(t->pc - 4);
 
     // Check whether we need to swith to THUMB or jazelle
     // This meas that either J got set and we switch to Jazelle
@@ -780,10 +781,12 @@ void ThumbExecute(ARMState *t)
           case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); continue;
           case 0xD:
           {
+            std::cerr << "BX" << std::endl;
             continue;
           }
           case 0xC:
           {
+            std::cerr << "BX" << std::endl;
             continue;
           }
           default:
@@ -949,32 +952,28 @@ void ThumbExecute(ARMState *t)
           // SXTH
           case 0x10 ... 0x11:
           {
-            std::cerr << "SXTH" << std::endl;
-            __builtin_trap();
+            t->r[op & 7] = (int32_t)((int16_t)t->r[(op >> 3) & 7]);
             continue;
           }
 
           // SXTB
           case 0x12 ... 0x13:
           {
-            std::cerr << "SXTB" << std::endl;
-            __builtin_trap();
+            t->r[op & 7] = (int32_t)((int8_t)t->r[(op >> 3) & 7]);
             continue;
           }
 
           // UXTH
           case 0x14 ... 0x15:
           {
-            std::cerr << "UXTH" << std::endl;
-            __builtin_trap();
+            t->r[op & 7] = (uint32_t)((uint16_t)t->r[(op >> 3) & 7]);
             continue;
           }
 
           // UXTB
           case 0x16 ... 0x17:
           {
-            std::cerr << "UXTB" << std::endl;
-            __builtin_trap();
+            t->r[op & 7] = (uint32_t)((uint8_t)t->r[(op >> 3) & 7]);
             continue;
           }
 
@@ -1163,13 +1162,16 @@ void ThumbExecute(ARMState *t)
       // BL label
       case 0x78 ... 0x7B:
       {
-        __builtin_trap();
+        std::cerr << (op & 0x7FF) << std::endl;
+        t->lr = t->pc + ((op & 0x7FF) << 2);
         continue;
       }
 
       // BL label
       case 0x7C ... 0x7F:
       {
+        std::cerr << (op & 0x7FF) << std::endl;
+        temp = t->pc - 2;
         __builtin_trap();
         continue;
       }

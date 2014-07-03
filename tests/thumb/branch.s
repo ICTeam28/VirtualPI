@@ -3,11 +3,11 @@
 @ (C) 2014 Nandor Licker. All rights reserved.
 
 entry:
-  .code 32
+  .arm
   ldr r6, =(thumb + 1)
   bx  r6
 thumb:
-  .code 16
+  .thumb
 1:
   mov   r7, #0
   ldr   r5, =-1
@@ -189,6 +189,12 @@ thumb:
   beq   2f
   b     1b
 2:
+
+  @ Loop
+  mov   r2, #5
+1:
+  sub   r2, #1
+  bne   1b
 
   mov   r4, #2
   b     8f

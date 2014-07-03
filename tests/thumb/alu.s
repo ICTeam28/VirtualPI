@@ -256,6 +256,29 @@ thumb:
   bpl 9f
   beq 9f
 
+  @ Test #22
+  mov r7, #22
+
+  mov r1, #3
+  add r2, r1, #3
+  cmp r2, #6
+  bne 9f
+
+  @ Test #23
+  mov r7, #23
+
+  mov sp, pc
+  add r1, sp, #16
+  add sp, sp, #16
+  cmp r1, sp
+  bne 9f
+  add r0, pc, #16
+  cmp r0, sp
+  blt 9f
+  sub sp, sp, #16
+  cmp r0, sp
+  blt 9f
+
   add r7, #1
 9:
   bkpt
