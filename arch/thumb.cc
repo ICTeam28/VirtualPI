@@ -385,7 +385,7 @@ static inline void MOV(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
     : [N] "=g" (t->n)
     , [Z] "=g" (t->z)
-    , [D] "=r" (d)
+    , [D] "=g" (d)
     : [S] "r"  (s)
     : "memory", "cc"
     );
@@ -750,7 +750,10 @@ void ThumbExecute(ARMState *t)
           case 0xD: MUL(t, r[op & 7], r[(op >> 3) & 7]); break;
           case 0xE: BIC(t, r[op & 7], r[(op >> 3) & 7]); break;
           case 0xF: MVN(t, r[op & 7], r[(op >> 3) & 7]); break;
-          default: /* LCOV_EXCL_LINE */ __builtin_unreachable();
+          default:
+          {
+            /* LCOV_EXCL_LINE */ __builtin_unreachable();
+          }
         }
 
         break;
@@ -770,15 +773,12 @@ void ThumbExecute(ARMState *t)
           case 0x9: MOV(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
           case 0xA: MOV(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
           case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
-          case 0xD:
+          case 0xC: case 0xD:
           {
-            std::cerr << "BX" << std::endl;
-            break;
-          }
-          case 0xC:
-          {
-            std::cerr << "BX" << std::endl;
-            break;
+            t->pc = t->r[(op >> 3) & 7];
+            t->t = t->pc & 1;
+            t->pc &= ~1;
+            continue;
           }
           default:
           {
@@ -1143,6 +1143,13 @@ void ThumbExecute(ARMState *t)
         continue;
       }
 
+      // SWI | UND
+      case 0x6F:
+      {
+        (*(((op >> 8) & 0x1) ? SWI : UND)) (t);
+        break;
+      }
+
       // B label
       case 0x70 ... 0x73:
       {
@@ -1178,14 +1185,10 @@ void ThumbExecute(ARMState *t)
         break;
       }
 
-      // SWI | UND
-      case 0x6F:
+      default:
       {
-        (*(((op >> 8) & 0x1) ? SWI : UND)) (t);
-        break;
+        /* LCOV_EXCL_LINE */ __builtin_unreachable();
       }
-
-      default: /* LCOV_EXCL_LINE */ __builtin_unreachable();
     }
 
     // By subtracting two here and adding 4 on the next

@@ -257,12 +257,8 @@ void ARMExecute(ARMState *a)
         if ((op & 0x0FFFFFF0) == 0x012FFF10)
         {
           a->pc = a->r[op & 0xF];
-          if (a->pc & 1)
-          {
-            a->pc &= ~1;
-            a->j = 0;
-            a->t = 1;
-          }
+          a->t = a->pc & 1;
+          a->pc &= ~1;
           continue;
         }
         else
