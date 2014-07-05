@@ -6,6 +6,8 @@ entry:
   .arm
   ldr r0, =(thumb + 1)
   bx  r0
+
+
 thumb:
   .thumb
 1:
@@ -172,6 +174,19 @@ thumb:
   sub   r2, #1
   bne   1b
 
+  @ Test #17 - Branch to ARM
+  mov   r7, #17
+  ldr   r0, =bx_arm
+  bx    r0
+bx_arm:
+  .arm
+  mov   r1, #2
+  ldr   r0, =(bx_thumb + 1)
+  bx    r0
+bx_thumb:
+  .thumb
+  cmp   r1, #2
+  bne   9f
 
   add   r7, #1
 9:

@@ -3,21 +3,17 @@
 // (C) 2014 Nandor Licker. All rights reserved.
 #include "common.h"
 
-// -----------------------------------------------------------------------------
-template<bool I, bool P, bool U, bool B, bool W, bool L, uint32_t SH>
-static inline void SingleDataTrans(ARMState *a, uint32_t op) FORCEINLINE;
-
 
 // -----------------------------------------------------------------------------
-static inline void UND(ARMState *a)
-{
-
-}
+// Exceptions
+// -----------------------------------------------------------------------------
+static inline void SWI(ARMState*) FORCEINLINE;
+static inline void UND(ARMState*) FORCEINLINE;
 
 
 // -----------------------------------------------------------------------------
 template<bool S>
-static inline uint32_t OperandReg(ARMState *a, uint32_t op)
+static inline uint32_t OpReg(ARMState *a, uint32_t op)
 {
   uint32_t reg, rs, shift;
 
@@ -116,6 +112,18 @@ static inline uint32_t OperandReg(ARMState *a, uint32_t op)
 
 
 // -----------------------------------------------------------------------------
+static inline uint32_t OpImm(ARMState *a, uint32_t op)
+{
+  uint32_t rot, imm;
+
+  rot = (op >> 8) & 0x0F;
+  imm = (op >> 0) & 0xFF;
+
+  return (imm >> (rot << 1)) | (imm << (32 - (rot << 1)));
+}
+
+
+// -----------------------------------------------------------------------------
 template<bool I, bool P, bool U, bool B, bool W, bool L>
 static inline void SingleDataTrans(ARMState *a, uint32_t op)
 {
@@ -135,7 +143,7 @@ static inline void SingleDataTrans(ARMState *a, uint32_t op)
       UND(a);
     }
 
-    offset = OperandReg<0> (a, op);
+    offset = OpReg<0> (a, op);
   }
   else
   {
@@ -192,6 +200,81 @@ static inline void SingleDataTrans(ARMState *a, uint32_t op)
   }
 }
 
+
+// -----------------------------------------------------------------------------
+static inline void MOV(ARMState *a, int32_t& d, int32_t x, uint32_t y)
+{
+  d = y;
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void MOVS(ARMState *a, int32_t& d, int32_t x, uint32_t y)
+{
+  asm volatile
+    ( "movl   %[Y], %[D]       \n\t"
+      "testl  %[D], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+    : [N] "=m" (a->n)
+    , [Z] "=m" (a->z)
+    , [D] "=g" (d)
+    : [Y] "r"  (y)
+    : "memory"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void ADD(ARMState *a, int32_t& d, int32_t x, uint32_t y)
+{
+  asm volatile
+    ( "addl   %[X], %[Y]       \n\t"
+      "movl   %[Y], %[D]       \n\t"
+    : [D] "=g" (d)
+    : [X] "g"  (x)
+    , [Y] "r"  (y)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void ADDS(ARMState *a, int32_t& d, int32_t x, uint32_t y)
+{
+  asm volatile
+    ( "addl   %[X], %[Y]       \n\t"
+      "movl   %[Y], %[D]       \n\t"
+      "sets   %[N]             \n\t"
+      "setz   %[Z]             \n\t"
+      "setc   %[C]             \n\t"
+      "seto   %[V]             \n\t"
+    : [N] "=m" (a->n)
+    , [Z] "=m" (a->z)
+    , [C] "=m" (a->c)
+    , [V] "=m" (a->v)
+    , [D] "=g" (d)
+    : [X] "g"  (x)
+    , [Y] "r"  (y)
+    : "memory", "cc", "eax"
+    );
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void SWI(ARMState *a)
+{
+
+}
+
+
+// -----------------------------------------------------------------------------
+static inline void UND(ARMState *a)
+{
+
+}
+
+
 // -----------------------------------------------------------------------------
 void ARMExecute(ARMState *a)
 {
@@ -205,10 +288,12 @@ void ARMExecute(ARMState *a)
       return;
     }
 
+
     // Fetch next instruction and ajust the program counter
     // to take into account the pipelining effect
     op = a->mem->ReadInstrLong(a->pc);
     a->pc += 8;
+
 
     // Check for exceptional conditions. Interrupts are handled
     // in this state, so in those cases we jump to the
@@ -231,7 +316,9 @@ void ARMExecute(ARMState *a)
       }
     }
 
-    // Decode the instruction
+
+    // Decode the instruction based on bits [20:27] of
+    // the instruction opcode
     switch (((op >> 20) & 0xFF))
     {
       case 0x00: break;
@@ -267,7 +354,6 @@ void ARMExecute(ARMState *a)
         }
         break;
       }
-
       case 0x13: break;
       case 0x14: break;
       case 0x15: break;
@@ -281,38 +367,260 @@ void ARMExecute(ARMState *a)
       case 0x1D: break;
       case 0x1E: break;
       case 0x1F: break;
-      case 0x20: break;
-      case 0x21: break;
-      case 0x22: break;
-      case 0x23: break;
-      case 0x24: break;
-      case 0x25: break;
-      case 0x26: break;
-      case 0x27: break;
-      case 0x28: break;
-      case 0x29: break;
-      case 0x2A: break;
-      case 0x2B: break;
-      case 0x2C: break;
-      case 0x2D: break;
-      case 0x2E: break;
-      case 0x2F: break;
-      case 0x30: break;
-      case 0x31: break;
-      case 0x32: break;
-      case 0x33: break;
-      case 0x34: break;
-      case 0x35: break;
-      case 0x36: break;
-      case 0x37: break;
-      case 0x38: break;
-      case 0x39: break;
-      case 0x3A: break;
-      case 0x3B: break;
-      case 0x3C: break;
-      case 0x3D: break;
-      case 0x3E: break;
-      case 0x3F: break;
+
+      // AND Rd, Rn, #imm
+      case 0x20:
+      {
+        std::cerr << "AND" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ANDS Rd, Rn, #imm
+      case 0x21:
+      {
+        std::cerr << "ANDS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // EOR Rd, Rn, #imm
+      case 0x22:
+      {
+        std::cerr << "EOR" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // EORS Rd, Rn, #imm
+      case 0x23:
+      {
+        std::cerr << "EORS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // SUB Rd, Rn, #imm
+      case 0x24:
+      {
+        std::cerr << "SUB" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // SUBS Rd, Rn, #imm
+      case 0x25:
+      {
+        std::cerr << "SUBS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // RSB Rd, Rn, #imm
+      case 0x26:
+      {
+        std::cerr << "RSB" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // RSBS  Rd, Rn, #imm
+      case 0x27:
+      {
+        std::cerr << "RSBS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ADD Rd, Rn, #imm
+      case 0x28:
+      {
+        ADD(a, a->r[(op >> 12) & 15], a->r[(op >> 16) & 15], OpImm(a, op));
+        break;
+      }
+
+      // ADDS Rd, Rn, #imm
+      case 0x29:
+      {
+        ADDS(a, a->r[(op >> 12) & 15], a->r[(op >> 16) & 15], OpImm(a, op));
+        break;
+      }
+
+      // ADC Rd, Rn, #imm
+      case 0x2A:
+      {
+        std::cerr << "ADC" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ADCS Rd, Rn, #imm
+      case 0x2B:
+      {
+        std::cerr << "ADCS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // SBC  Rd, Rn, #imm
+      case 0x2C:
+      {
+        std::cerr << "SBC" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // SBCS  Rd, Rn, #imm
+      case 0x2D:
+      {
+        std::cerr << "SBCS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // RSC Rd, Rn, #imm
+      case 0x2E:
+      {
+        std::cerr << "RSC" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // RSCS  Rd, Rn, #imm
+      case 0x2F:
+      {
+        std::cerr << "RSCS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // TST Rn, #imm
+      case 0x30:
+      {
+        std::cerr << "TST" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ?
+      case 0x31:
+      {
+        std::cerr << "" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // TEQ Rn, #imm
+      case 0x32:
+      {
+        std::cerr << "TEQ" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ?
+      case 0x33:
+      {
+        std::cerr << "" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // CMP Rn, #imm
+      case 0x34:
+      {
+        std::cerr << "CMP" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ?
+      case 0x35:
+      {
+        std::cerr << "" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // CMN Rn, #imm
+      case 0x36:
+      {
+        std::cerr << "CMN" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ?
+      case 0x37:
+      {
+        std::cerr << "" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ORR Rd, Rn, #imm
+      case 0x38:
+      {
+        std::cerr << "ORR" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // ORRS Rd, Rn, #imm
+      case 0x39:
+      {
+        std::cerr << "ORRS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // MOV Rd, Rn, #imm
+      case 0x3A:
+      {
+        MOV(a, a->r[(op >> 12) & 15], a->r[(op >> 16) & 15], OpImm(a, op));
+        break;
+      }
+
+      // MOVS Rd, Rn, #imm
+      case 0x3B:
+      {
+        MOVS(a, a->r[(op >> 12) & 15], a->r[(op >> 16) & 15], OpImm(a, op));
+        break;
+      }
+
+      // BIC Rd, Rn, #imm
+      case 0x3C:
+      {
+        std::cerr << "BIC" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // BICS Rd, Rn, #imm
+      case 0x3D:
+      {
+        std::cerr << "BICS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // MVN Rd, Rn, #imm
+      case 0x3E:
+      {
+        std::cerr << "MVN" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+      // MVNS Rd, Rn, #imm
+      case 0x3F:
+      {
+        std::cerr << "MVNS" << std::endl;
+        __builtin_trap();
+        break;
+      }
+
+
       case 0x40: SingleDataTrans<0, 0, 0, 0, 0, 0>(a, op); break;
       case 0x41: SingleDataTrans<0, 0, 0, 0, 0, 1>(a, op); break;
       case 0x42: SingleDataTrans<0, 0, 0, 0, 1, 0>(a, op); break;
@@ -505,7 +813,12 @@ void ARMExecute(ARMState *a)
       case 0xFD: break;
       case 0xFE: break;
       case 0xFF: break;
+      default:
+      {
+        /* LCOV_EXCL_LINE */ __builtin_unreachable();
+      }
     }
+
 
     // We increment by 8 at the beginning in order
     // for instructions to read in the correctly

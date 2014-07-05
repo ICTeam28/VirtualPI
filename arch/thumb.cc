@@ -5,61 +5,6 @@
 
 
 // -----------------------------------------------------------------------------
-// 2 Operand ALU
-// -----------------------------------------------------------------------------
-static void ADD(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void AND(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void EOR(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void LSL(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void LSR(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void ASR(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void ADC(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void SBC(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void ROR(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void TST(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void NEG(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void CMN(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void ORR(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void MUL(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void BIC(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void MVN(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void MOV(ARMState*, int32_t&, int32_t) FORCEINLINE;
-static void CMP(ARMState*, int32_t&, int32_t) FORCEINLINE;
-
-
-// -----------------------------------------------------------------------------
-// 3 Operand ALU
-// -----------------------------------------------------------------------------
-static void LSL(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void LSR(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void ASR(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void ADD(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-static void SUB(ARMState*, int32_t&, int32_t, int32_t) FORCEINLINE;
-
-
-// -----------------------------------------------------------------------------
-// Memory Load/Store
-// -----------------------------------------------------------------------------
-static void LDR  (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void STR  (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void STRB (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDRH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void LDSH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void STRH (ARMState*, int32_t&, uint32_t) FORCEINLINE;
-static void STMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
-static void LDMIA(ARMState*, int32_t&, uint8_t)  FORCEINLINE;
-
-
-// -----------------------------------------------------------------------------
-// Exceptions
-// -----------------------------------------------------------------------------
-static inline void SWI(ARMState*) FORCEINLINE;
-static inline void UND(ARMState*) FORCEINLINE;
-
-
-// -----------------------------------------------------------------------------
 static inline void ADD(ARMState *t, int32_t &d, int32_t s)
 {
   asm volatile
@@ -119,9 +64,9 @@ static inline void LSL(ARMState *t, int32_t &d, int32_t s)
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [D] "+g" (d)
     : [S] "c"  (s)
     : "memory", "cc"
@@ -137,9 +82,9 @@ static inline void LSR(ARMState *t, int32_t &d, int32_t s)
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [D] "+g" (d)
     : [S] "c"  (s)
     : "memory", "cc"
@@ -155,9 +100,9 @@ static inline void ASR(ARMState *t, int32_t &d, int32_t s)
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [D] "+g" (d)
     : [S] "c"  (s)
     : "memory", "cc"
@@ -176,10 +121,10 @@ static inline void ADC(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "+g" (t->c)
-    , [V] "=g" (t->v)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "+m" (t->c)
+    , [V] "=m" (t->v)
     , [D] "+g" (d)
     : [S] "r"  (s)
     : "memory", "cc", "al"
@@ -198,10 +143,10 @@ static inline void SBC(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
       "setnc  %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "+g" (t->c)
-    , [V] "=g" (t->v)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "+m" (t->c)
+    , [V] "=m" (t->v)
     , [D] "+g" (d)
     : [S] "r"  (s)
     : "memory", "cc", "al"
@@ -218,9 +163,9 @@ static inline void ROR(ARMState *t, int32_t &d, int32_t s)
       "testl  %[D], %[D]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [D] "+r" (d)
     : [S] "c"  (s)
     : "memory", "cc"
@@ -235,8 +180,8 @@ static inline void TST(ARMState *t, int32_t &d, int32_t s)
     ( "testl  %[S], %[D]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
     , [D] "+r" (d)
     : [S] "g"  (s)
     : "memory", "cc"
@@ -254,10 +199,10 @@ static inline void NEG(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
-    , [V] "=g" (t->v)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
     , [D] "+r" (d)
     : [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -275,10 +220,10 @@ static inline void CMP(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
       "setnc  %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
-    , [V] "=g" (t->v)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
     : [D] "g"  (d)
     , [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -296,10 +241,10 @@ static inline void CMN(ARMState *t, int32_t &d, int32_t s)
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
       "seto   %[V]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
-    , [V] "=g" (t->v)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
+    , [V] "=m" (t->v)
     : [D] "g"  (d)
     , [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -348,8 +293,8 @@ static inline void BIC(ARMState *t, int32_t &d, int32_t s)
       "andl   %%eax, %[D]      \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
     , [D] "+g" (d)
     : [S] "g"  (s)
     : "memory", "cc", "eax"
@@ -366,8 +311,8 @@ static inline void MVN(ARMState *t, int32_t &d, int32_t s)
       "test   %[D], %[D]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
     , [D] "=r" (d)
     : [S] "r"  (s)
     : "memory", "cc"
@@ -383,8 +328,8 @@ static inline void MOV(ARMState *t, int32_t &d, int32_t s)
       "test   %[S], %[S]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
     , [D] "=g" (d)
     : [S] "r"  (s)
     : "memory", "cc"
@@ -396,17 +341,16 @@ static inline void MOV(ARMState *t, int32_t &d, int32_t s)
 static inline void LSL(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
-    ( "movl   %[A], %%eax      \n\t"
-      "shll   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
+    ( "shll   %%cl, %[A]       \n\t"
+      "movl   %[A], %[R]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [R] "=g" (r)
-    : [A] "g"  (a)
+    : [A] "r"  (a)
     , [B] "c"  (b)
     : "memory", "cc", "eax"
     );
@@ -417,19 +361,18 @@ static inline void LSL(ARMState *t, int32_t &r, int32_t a, int32_t b)
 static inline void LSR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
-    ( "movl   %[A], %%eax      \n\t"
-      "shrl   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
+    ( "shrl   %%cl, %[A]       \n\t"
+      "movl   %[A], %[R]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [R] "=g" (r)
-    : [A] "g"  (a)
+    : [A] "r"  (a)
     , [B] "c"  (b)
-    : "memory", "cc", "eax"
+    : "memory", "cc"
     );
 }
 
@@ -438,19 +381,18 @@ static inline void LSR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 static inline void ASR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
-    ( "movl   %[A], %%eax      \n\t"
-      "sarl   %%cl, %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
+    ( "sarl   %%cl, %[A]       \n\t"
+      "movl   %[A], %[R]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
-    : [N] "=g" (t->n)
-    , [Z] "=g" (t->z)
-    , [C] "=g" (t->c)
+    : [N] "=m" (t->n)
+    , [Z] "=m" (t->z)
+    , [C] "=m" (t->c)
     , [R] "=g" (r)
-    : [A] "g"  (a)
+    : [A] "r"  (a)
     , [B] "c"  (b)
-    : "memory", "cc", "eax"
+    : "memory", "cc"
     );
 }
 
@@ -459,9 +401,8 @@ static inline void ASR(ARMState *t, int32_t &r, int32_t a, int32_t b)
 static inline void ADD(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
-    ( "movl   %[B], %%eax      \n\t"
-      "addl   %[A], %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
+    ( "addl   %[A], %[B]       \n\t"
+      "movl   %[B], %[R]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setc   %[C]             \n\t"
@@ -470,10 +411,10 @@ static inline void ADD(ARMState *t, int32_t &r, int32_t a, int32_t b)
     , [Z] "=m" (t->z)
     , [C] "=m" (t->c)
     , [V] "=m" (t->v)
-    , [R] "=m" (r)
+    , [R] "=g" (r)
     : [A] "g"  (a)
-    , [B] "g"  (b)
-    : "memory", "cc", "eax"
+    , [B] "r"  (b)
+    : "memory", "cc"
     );
 }
 
@@ -482,9 +423,8 @@ static inline void ADD(ARMState *t, int32_t &r, int32_t a, int32_t b)
 static inline void SUB(ARMState *t, int32_t &r, int32_t a, int32_t b)
 {
   asm volatile
-    ( "movl   %[B], %%eax      \n\t"
-      "subl   %[A], %%eax      \n\t"
-      "movl   %%eax, %[R]      \n\t"
+    ( "subl   %[A], %[B]       \n\t"
+      "movl   %[B], %[R]       \n\t"
       "sets   %[N]             \n\t"
       "setz   %[Z]             \n\t"
       "setnc  %[C]             \n\t"
@@ -493,10 +433,10 @@ static inline void SUB(ARMState *t, int32_t &r, int32_t a, int32_t b)
     , [Z] "=m" (t->z)
     , [C] "=m" (t->c)
     , [V] "=m" (t->v)
-    , [R] "=m" (r)
+    , [R] "=g" (r)
     : [A] "g"  (a)
-    , [B] "g"  (b)
-    : "memory", "cc", "eax"
+    , [B] "r"  (b)
+    : "memory", "cc"
     );
 }
 
@@ -511,72 +451,63 @@ static inline void LDR(ARMState *t, int32_t &r, uint32_t addr)
 // -----------------------------------------------------------------------------
 static inline void STR(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "STR" << std::endl;
-  __builtin_trap();
+  assert(!"STR");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void LDRB(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "LDRB" << std::endl;
-  __builtin_trap();
+  assert(!"LDRB");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void STRB(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "STRB" << std::endl;
-  __builtin_trap();
+  assert(!"STRB");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void LDRH(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "LDRH" << std::endl;
-  __builtin_trap();
+  assert(!"LDRH");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void STRH(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "STRH" << std::endl;
-  __builtin_trap();
+  assert(!"STRH");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void LDSB(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "LDSB" << std::endl;
-  __builtin_trap();
+  assert(!"LDSB");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void LDSH(ARMState*, int32_t&, uint32_t)
 {
-  std::cerr << "LDSH" << std::endl;
-  __builtin_trap();
+  assert(!"LDSH");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void STMIA(ARMState*, int32_t&, uint8_t)
 {
-  std::cerr << "STMIA" << std::endl;
-  __builtin_trap();
+  assert(!"STMIA");
 }
 
 
 // -----------------------------------------------------------------------------
 static inline void LDMIA(ARMState*, int32_t&, uint8_t)
 {
-  std::cerr << "LDMIA" << std::endl;
-  __builtin_trap();
+  assert(!"LDMIA");
 }
 
 
@@ -759,20 +690,29 @@ void ThumbExecute(ARMState *t)
         break;
       }
 
-      // alu Rd/Hd, Rs/Hs
       case 0x22 ... 0x23:
       {
         switch ((op >> 6) & 0xF)
         {
+          // ADD Rd/Hd, Rs/Hs
+          case 0x0: UND(t); break;
           case 0x1: ADD(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
           case 0x2: ADD(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
           case 0x3: ADD(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+
+          // CMP Rd/Hd, Rs/Hs
+          case 0x4: UND(t); break;
           case 0x5: CMP(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
           case 0x6: CMP(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
           case 0x7: CMP(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+
+          // MOV Rd/Hd, Rs/Hs
+          case 0x8: UND(t); break;
           case 0x9: MOV(t, r[0 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
           case 0xA: MOV(t, r[8 + (op & 7)], r[0 + ((op >> 3) & 7)]); break;
           case 0xB: MOV(t, r[8 + (op & 7)], r[8 + ((op >> 3) & 7)]); break;
+
+          // BX
           case 0xC: case 0xD:
           {
             t->pc = t->r[(op >> 3) & 7];
@@ -780,10 +720,16 @@ void ThumbExecute(ARMState *t)
             t->pc &= ~1;
             continue;
           }
+
+          // BLX
+          case 0xE: case 0xF:
+          {
+            continue;
+          }
+
           default:
           {
-            UND(t);
-            break;
+            /* LCOV_EXCL_LINE */ __builtin_unreachable();
           }
         }
 
@@ -973,16 +919,14 @@ void ThumbExecute(ARMState *t)
           // PUSH
           case 0x20 ... 0x2F:
           {
-            std::cerr << "PUSH" << std::endl;
-            __builtin_trap();
+            assert(!"PUSH");
             break;
           }
 
           // CPS
           case 0x33:
           {
-            std::cerr << "CPS" << std::endl;
-            __builtin_trap();
+            assert(!"CPS");
             break;
           }
 
@@ -1014,8 +958,7 @@ void ThumbExecute(ARMState *t)
           // POP
           case 0x60 ... 0x6F:
           {
-            std::cerr << "POP" << std::endl;
-            __builtin_trap();
+            assert(!"POP");
             break;
           }
 
@@ -1031,8 +974,7 @@ void ThumbExecute(ARMState *t)
             if (op & 0xF)
             {
               // IT
-              std::cerr << "IT" << std::endl;
-              __builtin_trap();
+              assert(!"IT");
               break;
             }
 
@@ -1041,40 +983,35 @@ void ThumbExecute(ARMState *t)
               // NOP
               case 0x0:
               {
-                std::cerr << "NOP" << std::endl;
-                __builtin_trap();
+                assert(!"NOP");
                 break;
               }
 
               // YIELD
               case 0x1:
               {
-                std::cerr << "YIELD" << std::endl;
-                __builtin_trap();
+                assert(!"YIELD");
                 break;
               }
 
               // WFE
               case 0x2:
               {
-                std::cerr << "WFE" << std::endl;
-                __builtin_trap();
+                assert(!"WFE");
                 break;
               }
 
               // WFI
               case 0x3:
               {
-                std::cerr << "WFI" << std::endl;
-                __builtin_trap();
+                assert(!"WFI");
                 break;
               }
 
               // SEV
               case 0x4:
               {
-                std::cerr << "SEV" << std::endl;
-                __builtin_trap();
+                assert(!"SEV");
                 break;
               }
             }
@@ -1165,23 +1102,21 @@ void ThumbExecute(ARMState *t)
       // THUMB2
       case 0x74 ... 0x77:
       {
-        __builtin_trap();
+        assert(!"THUMB2");
         break;
       }
 
       // BL label
       case 0x78 ... 0x7B:
       {
-        std::cerr << (op & 0x7FF) << std::endl;
-        t->lr = t->pc + ((op & 0x7FF) << 2);
+        assert(!"BLO");
         break;
       }
 
       // BL label
       case 0x7C ... 0x7F:
       {
-        std::cerr << (op & 0x7FF) << std::endl;
-        __builtin_trap();
+        assert(!"BLH");
         break;
       }
 
