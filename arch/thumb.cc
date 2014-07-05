@@ -715,7 +715,7 @@ void ThumbExecute(ARMState *t)
           // BX
           case 0xC: case 0xD:
           {
-            t->pc = t->r[(op >> 3) & 7];
+            t->pc = t->r[(op >> 3) & 0xF];
             t->t = t->pc & 1;
             t->pc &= ~1;
             continue;
@@ -724,6 +724,10 @@ void ThumbExecute(ARMState *t)
           // BLX
           case 0xE: case 0xF:
           {
+            t->lr = t->pc - 2;
+            t->pc = t->r[(op >> 3) & 0xF];
+            t->t = t->pc & 1;
+            t->pc &= ~1;
             continue;
           }
 
