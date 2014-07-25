@@ -107,7 +107,7 @@ static inline uint32_t OpReg(ARMState *a, uint32_t op)
     }
   }
 
-  /* LCOV_EXCL_LINE*/ __builtin_unreachable();
+  /* LCOV_EXCL_LINE*/ UNREACHABLE();
 }
 
 
