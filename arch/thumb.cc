@@ -683,7 +683,7 @@ void ThumbExecute(ARMState *t)
           case 0xF: MVN(t, r[op & 7], r[(op >> 3) & 7]); break;
           default:
           {
-            /* LCOV_EXCL_LINE */ __builtin_unreachable();
+            /* LCOV_EXCL_LINE */ UNREACHABLE();
           }
         }
 
@@ -733,7 +733,7 @@ void ThumbExecute(ARMState *t)
 
           default:
           {
-            /* LCOV_EXCL_LINE */ __builtin_unreachable();
+            /* LCOV_EXCL_LINE */ UNREACHABLE();
           }
         }
 
@@ -1075,7 +1075,7 @@ void ThumbExecute(ARMState *t)
           case 0xD: temp = t->z || t->n != t->v;  break;
           default:
           {
-            /* LCOV_EXCL_LINE */ __builtin_unreachable();
+            /* LCOV_EXCL_LINE */ UNREACHABLE();
           }
         }
 
@@ -1126,7 +1126,7 @@ void ThumbExecute(ARMState *t)
 
       default:
       {
-        /* LCOV_EXCL_LINE */ __builtin_unreachable();
+        /* LCOV_EXCL_LINE */ UNREACHABLE();
       }
     }
 

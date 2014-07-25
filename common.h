@@ -32,6 +32,8 @@
 # define FORCEINLINE    __attribute__((always_inline))
 # define BSWAP_16(x)    __builtin_bswap16(x)
 # define BSWAP_32(x)    __builtin_bswap32(x)
+# define TRAP()         __builtin_trap()
+# define UNREACHABLE()  __builtin_unreachable()
 #else
 # error "Unsupported compiler"
 #endif

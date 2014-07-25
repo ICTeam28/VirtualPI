@@ -341,6 +341,7 @@ void ARMExecute(ARMState *a)
       case 0x11: break;
       case 0x12:
       {
+        // (David): what is this?
         if ((op & 0x0FFFFFF0) == 0x012FFF10)
         {
           a->pc = a->r[op & 0xF];
@@ -372,7 +373,7 @@ void ARMExecute(ARMState *a)
       case 0x20:
       {
         std::cerr << "AND" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -380,7 +381,7 @@ void ARMExecute(ARMState *a)
       case 0x21:
       {
         std::cerr << "ANDS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -388,7 +389,7 @@ void ARMExecute(ARMState *a)
       case 0x22:
       {
         std::cerr << "EOR" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -396,7 +397,7 @@ void ARMExecute(ARMState *a)
       case 0x23:
       {
         std::cerr << "EORS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -404,7 +405,7 @@ void ARMExecute(ARMState *a)
       case 0x24:
       {
         std::cerr << "SUB" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -412,7 +413,7 @@ void ARMExecute(ARMState *a)
       case 0x25:
       {
         std::cerr << "SUBS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -420,7 +421,7 @@ void ARMExecute(ARMState *a)
       case 0x26:
       {
         std::cerr << "RSB" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -428,7 +429,7 @@ void ARMExecute(ARMState *a)
       case 0x27:
       {
         std::cerr << "RSBS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -450,7 +451,7 @@ void ARMExecute(ARMState *a)
       case 0x2A:
       {
         std::cerr << "ADC" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -458,7 +459,7 @@ void ARMExecute(ARMState *a)
       case 0x2B:
       {
         std::cerr << "ADCS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -466,7 +467,7 @@ void ARMExecute(ARMState *a)
       case 0x2C:
       {
         std::cerr << "SBC" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -474,7 +475,7 @@ void ARMExecute(ARMState *a)
       case 0x2D:
       {
         std::cerr << "SBCS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -482,7 +483,7 @@ void ARMExecute(ARMState *a)
       case 0x2E:
       {
         std::cerr << "RSC" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -490,7 +491,7 @@ void ARMExecute(ARMState *a)
       case 0x2F:
       {
         std::cerr << "RSCS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -498,7 +499,7 @@ void ARMExecute(ARMState *a)
       case 0x30:
       {
         std::cerr << "TST" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -506,7 +507,7 @@ void ARMExecute(ARMState *a)
       case 0x31:
       {
         std::cerr << "" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -514,7 +515,7 @@ void ARMExecute(ARMState *a)
       case 0x32:
       {
         std::cerr << "TEQ" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -522,7 +523,7 @@ void ARMExecute(ARMState *a)
       case 0x33:
       {
         std::cerr << "" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -530,7 +531,7 @@ void ARMExecute(ARMState *a)
       case 0x34:
       {
         std::cerr << "CMP" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -538,7 +539,7 @@ void ARMExecute(ARMState *a)
       case 0x35:
       {
         std::cerr << "" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -546,7 +547,7 @@ void ARMExecute(ARMState *a)
       case 0x36:
       {
         std::cerr << "CMN" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -554,7 +555,7 @@ void ARMExecute(ARMState *a)
       case 0x37:
       {
         std::cerr << "" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -562,7 +563,7 @@ void ARMExecute(ARMState *a)
       case 0x38:
       {
         std::cerr << "ORR" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -570,7 +571,7 @@ void ARMExecute(ARMState *a)
       case 0x39:
       {
         std::cerr << "ORRS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -592,7 +593,7 @@ void ARMExecute(ARMState *a)
       case 0x3C:
       {
         std::cerr << "BIC" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -600,7 +601,7 @@ void ARMExecute(ARMState *a)
       case 0x3D:
       {
         std::cerr << "BICS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -608,7 +609,7 @@ void ARMExecute(ARMState *a)
       case 0x3E:
       {
         std::cerr << "MVN" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -616,7 +617,7 @@ void ARMExecute(ARMState *a)
       case 0x3F:
       {
         std::cerr << "MVNS" << std::endl;
-        __builtin_trap();
+        TRAP();
         break;
       }
 
@@ -815,7 +816,7 @@ void ARMExecute(ARMState *a)
       case 0xFF: break;
       default:
       {
-        /* LCOV_EXCL_LINE */ __builtin_unreachable();
+        /* LCOV_EXCL_LINE */ UNREACHABLE();
       }
     }
 
