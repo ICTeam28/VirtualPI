@@ -283,13 +283,13 @@ void ARMExecute(ARMState *a)
   while (true)
   {
     // Check whether we have switched to THUMB or JAZELLE
-    if (a->t || a->t)
+    if (a->t || a->j)
     {
       return;
     }
 
 
-    // Fetch next instruction and ajust the program counter
+    // Fetch next instruction and adjust the program counter
     // to take into account the pipelining effect
     op = a->mem->ReadInstrLong(a->pc);
     a->pc += 8;
