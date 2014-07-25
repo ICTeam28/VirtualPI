@@ -65,7 +65,7 @@ public:
 private:
 
   /// Configuration
-  const Args &args;
+  Args args;
 
   /// Memory module
   Memory mem;
